@@ -1,19 +1,30 @@
 const electron = require('electron')
 // Module to control application life.
-const app = electron.app
+const app = electron.app0
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
 
+console.log(process.versions.electron)
+console.log(process.arch)
 const path = require('path')
 const url = require('url')
+const robot = require('robotjs');
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
 function createWindow () {
+
+  
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  console.log(electron.screen.width)
+  mainWindow = new BrowserWindow({
+    width: 500,
+    height: 500,
+    // width: electron.screen.getPrimaryDisplay().size.width,
+    // height: electron.screen.getPrimaryDisplay().size.height,
+    // transparent: true,
+    // frame: false,
+  });
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
@@ -21,9 +32,17 @@ function createWindow () {
     protocol: 'file:',
     slashes: true
   }))
+  // mainWindow.setIgnoreMouseEvents(true);
+  // mainWindow.setAlwaysOnTop(true);
+
+
+  console.log('electron.screen', electron.screen.getCursorScreenPoint());
+  setInterval(()=>{
+    if (mainWindow) mainWindow.webContents.send('asynchronous-reply', electron.screen.getCursorScreenPoint());
+  }, 16)
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {

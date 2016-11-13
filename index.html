@@ -11,37 +11,10 @@
       padding: 0;
       overflow: hidden;
     }
-    </style>
-
-
-<canvas id="c"></canvas>
-
-<script id="shader-fs" type="x-shader/x-fragment">
-				#ifdef GL_ES
-				  precision highp float;
-				  #endif
-    		void main(void) {
-    		 gl_FragColor = vec4(0.2, 0.3, 0.4, 1.0);
-    		}
-		</script>
-
-  <script id="shader-vs" type="x-shader/x-vertex">
-    	attribute vec3 vertexPosition;
-
-  	uniform mat4 modelViewMatrix;
-  	uniform mat4 perspectiveMatrix;
-
-   	void main(void) {
-  		gl_Position = perspectiveMatrix * modelViewMatrix * vec4(  vertexPosition, 1.0);
-  	}
-  </script>
-  
+    </style> 
 
     <script>
     // You can also require other files to run in this process
-    // const THREE = require('./three.min.js');
-    // const {mat4, vec3} = require('./gl-matrix-min.js')
-    require('./renderer.js');
     require('./client.js');
   </script>
 </html>

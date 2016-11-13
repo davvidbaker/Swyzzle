@@ -9,8 +9,8 @@ let timer = 0;
  ========================================================= */
 const ipc = require('electron').ipcRenderer;
 
-ipc.on('asynchronous-reply', function (event, arg) {
-  const newMouse = [arg.x/screenWidth, arg.y/screenHeight];
+ipc.on('cursor', function (event, cursor) {
+  const newMouse = [cursor.pos.x/screenWidth, cursor.pos.y/screenHeight];
     {
       // uniforms.uMouse.value = new THREE.Vector2(arg.x/screenWidth, arg.y/screenHeight);//.x = evt.clientX/width;  
 
@@ -18,6 +18,8 @@ ipc.on('asynchronous-reply', function (event, arg) {
       timer = Date.now() - startTime;
       gl.uniform1f(uniforms.uTime, timer);
       gl.uniform2f(uniforms.uCursor, newMouse[0], newMouse[1]);
+      gl.uniform3f(uniforms.uColor, cursor.color.r, cursor.color.g, cursor.color.b);
+      console.log(cursor.color)
       // uniforms.uTime.value = timer * 0.001;
 
 
@@ -86,14 +88,16 @@ precision highp float;
 uniform float uTime;
 uniform float uAspect;
 uniform vec2 uCursor; // 0 -> 1
+uniform vec3 uColor; // color under cursor in range [0,1]
 
 varying vec2 vUV;
 
 void main() {
   vec2 uv = vec2(vUV.x*uAspect, vUV.y);
   vec2 uCursor2 = vec2(uCursor.x*uAspect, uCursor.y);
-  if (distance(uv, uCursor2) < 0.1) {
-    gl_FragColor = vec4(vUV, 0.5 + sin(uTime/1000.0)/2.0, uCursor.y);
+  if (distance(uv, uCursor2) < 0.01) {
+    // gl_FragColor = vec4(vUV, 0.5 + sin(uTime/1000.0)/2.0, uCursor.y);
+    gl_FragColor = vec4(uColor, 0.1);
   } else {
     gl_FragColor = vec4(0.0,0.0,0.0,0.0);
   }
@@ -115,6 +119,7 @@ const uniforms = {
   uResolution: gl.getUniformLocation(program, 'uResolution'),
   uTime: gl.getUniformLocation(program, 'uTime'),
   uCursor: gl.getUniformLocation(program, 'uCursor'),
+  uColor: gl.getUniformLocation(program, 'uColor'),
   uAspect: gl.getUniformLocation(program, 'uAspect'),
 };
 
@@ -148,7 +153,7 @@ gl.uniform1f(uniforms.uAspect, screenWidth/screenHeight);
  ========================================================= */
 
 // clear the canvas
-gl.clearColor(0,0,0,0);
+gl.clearColor(0,0,0,0.0);
 gl.clear(gl.COLOR_BUFFER_BIT);
 
 /* take data from the buffer we set up above and supply it to the attribute in the shader */

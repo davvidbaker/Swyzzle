@@ -1,14 +1,15 @@
 const electron = require('electron')
 // Module to control application life.
-const app = electron.app0
+const app = electron.app
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
 
-console.log(process.versions.electron)
-console.log(process.arch)
+console.log('electron version', process.versions.electron)
+console.log('electron architecture', process.arch)
 const path = require('path')
 const url = require('url')
 const robot = require('robotjs');
+
 
 let mainWindow
 
@@ -18,11 +19,11 @@ function createWindow () {
   // Create the browser window.
   console.log(electron.screen.width)
   mainWindow = new BrowserWindow({
-    width: 500,
-    height: 500,
-    // width: electron.screen.getPrimaryDisplay().size.width,
-    // height: electron.screen.getPrimaryDisplay().size.height,
-    // transparent: true,
+    // width: 500,
+    // height: 500,
+    width: electron.screen.getPrimaryDisplay().size.width,
+    height: electron.screen.getPrimaryDisplay().size.height,
+    transparent: true,
     // frame: false,
   });
 
@@ -32,13 +33,24 @@ function createWindow () {
     protocol: 'file:',
     slashes: true
   }))
-  // mainWindow.setIgnoreMouseEvents(true);
-  // mainWindow.setAlwaysOnTop(true);
+  mainWindow.setIgnoreMouseEvents(true);
+  mainWindow.setAlwaysOnTop(true);
 
 
   console.log('electron.screen', electron.screen.getCursorScreenPoint());
+  let cursorPos, cursorColor, cursorRGB;
   setInterval(()=>{
-    if (mainWindow) mainWindow.webContents.send('asynchronous-reply', electron.screen.getCursorScreenPoint());
+    cursorPos = electron.screen.getCursorScreenPoint();
+    cursorColor = robot.getPixelColor(cursorPos.x, cursorPos.y);
+    // split up color values and convert to 0 -> 1
+    cursorRGB = {
+      r: parseInt(cursorColor[0].concat(cursorColor[1]), 16)/255,
+      g: parseInt(cursorColor[2].concat(cursorColor[3]), 16)/255,
+      b: parseInt(cursorColor[4].concat(cursorColor[5]), 16)/255
+    };
+    console.log(cursorRGB)
+    if (mainWindow) mainWindow.webContents.send('cursor', {pos: cursorPos, color: cursorRGB});
+    // console.log(robot.getPixelColor(robot.getMousePos().x, robot.getMousePos().y))
   }, 16)
 
   // Open the DevTools.

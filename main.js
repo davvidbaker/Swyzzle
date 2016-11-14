@@ -17,14 +17,13 @@ function createWindow () {
 
   
   // Create the browser window.
-  console.log(electron.screen.width)
   mainWindow = new BrowserWindow({
     // width: 500,
     // height: 500,
     width: electron.screen.getPrimaryDisplay().size.width,
     height: electron.screen.getPrimaryDisplay().size.height,
     transparent: true,
-    // frame: false,
+    frame: false,
   });
 
   // and load the index.html of the app.
@@ -48,7 +47,6 @@ function createWindow () {
       g: parseInt(cursorColor[2].concat(cursorColor[3]), 16)/255,
       b: parseInt(cursorColor[4].concat(cursorColor[5]), 16)/255
     };
-    console.log(cursorRGB)
     if (mainWindow) mainWindow.webContents.send('cursor', {pos: cursorPos, color: cursorRGB});
     // console.log(robot.getPixelColor(robot.getMousePos().x, robot.getMousePos().y))
   }, 16)

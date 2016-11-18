@@ -52,6 +52,7 @@ ipc.on('screen', function (event, screenCapture) {
 
   screenImage = new ImageData(screenWidth, screenHeight);
   console.log('imgData length', imgData.length)
+  console.log('scaled imgData length', scaledImageData.length)
   console.log('screenwidth * height*4', screenWidth*screenHeight*4)
   // screenImage.data.set(imgData);
   screenImage.data.set(scaledImageData);

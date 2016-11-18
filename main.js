@@ -13,16 +13,16 @@ const robot = require('robotjs');
 
 let mainWindow
 
-function createWindow () {
+function createWindow() {
   const displays = electron.screen.getAllDisplays();
   console.log(displays);
   let activeDisplay;
   // if you have a second display, we choose that one
   // activeDisplay = (displays.length > 1) ? displays[1] : displays[0];
-  activeDisplay =  displays[0];
+  activeDisplay = displays[0];
 
-  const width  = activeDisplay.workArea.width;
-  const height =  activeDisplay.workArea.height;
+  const width = activeDisplay.workArea.width;
+  const height = activeDisplay.workArea.height;
   // Create the browser window.
   mainWindow = new BrowserWindow({
     // width: 500,
@@ -32,7 +32,7 @@ function createWindow () {
     transparent: true,
     frame: false,
     x: activeDisplay.bounds.x,
-    y: activeDisplay.bounds.y    
+    y: activeDisplay.bounds.y
   });
 
   // and load the index.html of the app.
@@ -41,34 +41,33 @@ function createWindow () {
     protocol: 'file:',
     slashes: true
   }))
-  // mainWindow.setIgnoreMouseEvents(true);
-  mainWindow.setAlwaysOnTop(true);
+  mainWindow.setIgnoreMouseEvents(true);
+  // mainWindow.setAlwaysOnTop(true);
 
-    var img = robot.screen.capture(0, 0, electron.screen.getPrimaryDisplay().size.width, electron.screen.getPrimaryDisplay().size.height);
-    // Support for higher density screens.
-    setTimeout(() => {
-      mainWindow.webContents.send('screen', {image: img});
-      mainWindow.webContents.send('test', 'testing');
-    }, 1000)
-    console.log(img);
+  // capture the screen and send it after a timeout
+  // on Macs, the window can't go all the way to the top because the menu panel bar up there
+  const workArea = electron.screen.getPrimaryDisplay().workArea;
+  let screenCapture = robot.screen.capture(workArea.x, workArea.y, workArea.width, workArea.height);
+  setTimeout(() => {
+    mainWindow.webContents.send('screen', screenCapture);
+    mainWindow.webContents.send('test', 'testing');
+  }, 500);
 
-  console.log('electron.screen', electron.screen.getCursorScreenPoint());
   let cursorPos, cursorColor, cursorRGB;
-  setInterval(()=>{
+  setInterval(() => {
     var mouse = electron.screen.getCursorScreenPoint();
     cursorPos = mouse;
-    console.log(cursorPos);
     if ((cursorPos.x >= activeDisplay.workArea.x && cursorPos.y >= activeDisplay.workArea.y) &&
-        (cursorPos.x <= activeDisplay.workArea.x + width && cursorPos.y <= activeDisplay.workArea.y + height)
+      (cursorPos.x <= activeDisplay.workArea.x + width && cursorPos.y <= activeDisplay.workArea.y + height)
     ) {
       cursorColor = robot.getPixelColor(cursorPos.x, cursorPos.y);
       // split up color values and convert to 0 -> 1
       cursorRGB = {
-        r: parseInt(cursorColor[0].concat(cursorColor[1]), 16)/255,
-        g: parseInt(cursorColor[2].concat(cursorColor[3]), 16)/255,
-        b: parseInt(cursorColor[4].concat(cursorColor[5]), 16)/255
+        r: parseInt(cursorColor[0].concat(cursorColor[1]), 16) / 255,
+        g: parseInt(cursorColor[2].concat(cursorColor[3]), 16) / 255,
+        b: parseInt(cursorColor[4].concat(cursorColor[5]), 16) / 255
       };
-      if (mainWindow) mainWindow.webContents.send('cursor', {pos: cursorPos, color: cursorRGB});
+      if (mainWindow) mainWindow.webContents.send('cursor', { pos: cursorPos, color: cursorRGB });
       // console.log(robot.getPixelColor(robot.getMousePos().x, robot.getMousePos().y))
     }
   }, 16)

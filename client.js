@@ -40,19 +40,22 @@ ipc.on('screen', function (event, screenCapture) {
   let ind = 0;
   console.log('multi', multi);
   // if (screenWidth * screenHeight * 4 < imgData.length) {
-    for (let i = 0; i < imgData.length; i+=4) {
-      scaledImageData[ind]   = imgData[(ind * multi)];
-      scaledImageData[ind+1] = imgData[(ind * multi) + 1];
-      scaledImageData[ind+2] = imgData[(ind * multi) + 2];
-      scaledImageData[ind+3] = imgData[(ind * multi) + 3];
-      ind+=4
+    for (let row = 0; row < screenCapture.height; row += multi) {
+      for (let col = 0; col < screenCapture.width; col += multi) {
+        scaledImageData[ind] = imgData[row*4*screenCapture.width + col*4];
+        scaledImageData[ind+1] = imgData[row*4*screenCapture.width + col*4 + 1];
+        scaledImageData[ind+2] = imgData[row*4*screenCapture.width + col*4 + 2];
+        scaledImageData[ind+3] = imgData[row*4*screenCapture.width + col*4 + 3];
+        ind += 4;
+      }
     }
-  // }
 
 
   screenImage = new ImageData(screenWidth, screenHeight);
   console.log('imgData length', imgData.length)
   console.log('scaled imgData length', scaledImageData.length)
+  console.log('screen capture width, height', screenCapture.width, screenCapture.height)
+  console.log('screenwidth, height', screenWidth, screenHeight)
   console.log('screenwidth * height*4', screenWidth*screenHeight*4)
   // screenImage.data.set(imgData);
   screenImage.data.set(scaledImageData);

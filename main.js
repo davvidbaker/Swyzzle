@@ -41,7 +41,7 @@ function createWindow() {
     protocol: 'file:',
     slashes: true
   }))
-  mainWindow.setIgnoreMouseEvents(true);
+  // mainWindow.setIgnoreMouseEvents(true);
   // mainWindow.setAlwaysOnTop(true);
 
   // capture the screen and send it after a timeout

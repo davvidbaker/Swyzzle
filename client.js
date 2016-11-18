@@ -35,6 +35,7 @@ ipc.on('screen', function (event, screenCapture) {
   }
 
   screenImage = new ImageData(screenWidth, screenHeight);
+  console.log('imgData length', imgData.length)
   screenImage.data.set(imgData);
   init();
   // ctx.putImageData(screenImage, 0, 0);

@@ -27,20 +27,34 @@ ipc.on('screen', function (event, screenCapture) {
   // Get color at 2, 3.
   const imgData = screenCapture.image;
   // for some reason, it seems that the rgb data being sent through robot js is actually ordered bgra...so we need to swizzle
-  let ind = 0;
   for (let i = 0; i < imgData.length; i+=4) {
     const tmp = imgData[i*1];
     imgData[i*1] = imgData[i*1+2];
     imgData[i*1+2] = tmp;
   }
+
   // For higher density screens (Macs) the resulting screen capture could be larger than the area requested. 
   // You can work around this by dividing the image size by the requested size
+  const scaledImageData = [];
+  const multi = screenCapture.width / screenWidth;
+  let ind = 0;
+  console.log('multi', multi);
+  // if (screenWidth * screenHeight * 4 < imgData.length) {
+    for (let i = 0; i < imgData.length; i+=4) {
+      scaledImageData[ind]   = imgData[(ind * multi)];
+      scaledImageData[ind+1] = imgData[(ind * multi) + 1];
+      scaledImageData[ind+2] = imgData[(ind * multi) + 2];
+      scaledImageData[ind+3] = imgData[(ind * multi) + 3];
+      ind+=4
+    }
+  // }
 
 
   screenImage = new ImageData(screenWidth, screenHeight);
   console.log('imgData length', imgData.length)
   console.log('screenwidth * height*4', screenWidth*screenHeight*4)
-  screenImage.data.set(imgData);
+  // screenImage.data.set(imgData);
+  screenImage.data.set(scaledImageData);
   init();
   // ctx.putImageData(screenImage, 0, 0);
 

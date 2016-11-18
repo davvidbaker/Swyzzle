@@ -33,9 +33,13 @@ ipc.on('screen', function (event, screenCapture) {
     imgData[i*1] = imgData[i*1+2];
     imgData[i*1+2] = tmp;
   }
+  // For higher density screens (Macs) the resulting screen capture could be larger than the area requested. 
+  // You can work around this by dividing the image size by the requested size
+
 
   screenImage = new ImageData(screenWidth, screenHeight);
   console.log('imgData length', imgData.length)
+  console.log('screenwidth * height*4', screenWidth*screenHeight*4)
   screenImage.data.set(imgData);
   init();
   // ctx.putImageData(screenImage, 0, 0);

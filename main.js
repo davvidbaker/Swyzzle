@@ -32,9 +32,16 @@ function createWindow () {
     protocol: 'file:',
     slashes: true
   }))
-  mainWindow.setIgnoreMouseEvents(true);
+  // mainWindow.setIgnoreMouseEvents(true);
   mainWindow.setAlwaysOnTop(true);
 
+    var img = robot.screen.capture(0, 0, electron.screen.getPrimaryDisplay().size.width, electron.screen.getPrimaryDisplay().size.height);
+    // Support for higher density screens.
+    setTimeout(() => {
+      mainWindow.webContents.send('screen', {image: img});
+      mainWindow.webContents.send('test', 'testing');
+    }, 1000)
+    console.log(img);
 
   console.log('electron.screen', electron.screen.getCursorScreenPoint());
   let cursorPos, cursorColor, cursorRGB;

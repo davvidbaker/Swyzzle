@@ -16,21 +16,12 @@ const robot = require('robotjs');
  ========================================================= */
 let screenImage;
 ipc.on('screen', function (event, screenCapture) {
-
-  // var canvas = document.getElementById("myCanvas");
-  // canvas.width = screenWidth;
-  // canvas.height = screenHeight;
-  // var ctx = canvas.getContext("2d");
-
-  // var multiX = screenCapture.width / canvas.width;
-  // var multiY = screenCapture.height / canvas.height;
-  // Get color at 2, 3.
   const imgData = screenCapture.image;
   // for some reason, it seems that the rgb data being sent through robot js is actually ordered bgra...so we need to swizzle
-  for (let i = 0; i < imgData.length; i+=4) {
-    const tmp = imgData[i*1];
-    imgData[i*1] = imgData[i*1+2];
-    imgData[i*1+2] = tmp;
+  for (let i = 0; i < imgData.length; i += 4) {
+    const tmp = imgData[i * 1];
+    imgData[i * 1] = imgData[i * 1 + 2];
+    imgData[i * 1 + 2] = tmp;
   }
 
   // For higher density screens (Macs) the resulting screen capture could be larger than the area requested. 
@@ -38,38 +29,22 @@ ipc.on('screen', function (event, screenCapture) {
   const scaledImageData = [];
   const multi = screenCapture.width / screenWidth;
   let ind = 0;
-  console.log('multi', multi);
-  // if (screenWidth * screenHeight * 4 < imgData.length) {
+  if (screenWidth * screenHeight * 4 < imgData.length) {
     for (let row = 0; row < screenCapture.height; row += multi) {
       for (let col = 0; col < screenCapture.width; col += multi) {
-        scaledImageData[ind] = imgData[row*4*screenCapture.width + col*4];
-        scaledImageData[ind+1] = imgData[row*4*screenCapture.width + col*4 + 1];
-        scaledImageData[ind+2] = imgData[row*4*screenCapture.width + col*4 + 2];
-        scaledImageData[ind+3] = imgData[row*4*screenCapture.width + col*4 + 3];
+        scaledImageData[ind] = imgData[row * 4 * screenCapture.width + col * 4];
+        scaledImageData[ind + 1] = imgData[row * 4 * screenCapture.width + col * 4 + 1];
+        scaledImageData[ind + 2] = imgData[row * 4 * screenCapture.width + col * 4 + 2];
+        scaledImageData[ind + 3] = imgData[row * 4 * screenCapture.width + col * 4 + 3];
         ind += 4;
       }
     }
-
+    imgData = scaledImageData;
+  }
 
   screenImage = new ImageData(screenWidth, screenHeight);
-  console.log('imgData length', imgData.length)
-  console.log('scaled imgData length', scaledImageData.length)
-  console.log('screen capture width, height', screenCapture.width, screenCapture.height)
-  console.log('screenwidth, height', screenWidth, screenHeight)
-  console.log('screenwidth * height*4', screenWidth*screenHeight*4)
-  // screenImage.data.set(imgData);
-  screenImage.data.set(scaledImageData);
+  screenImage.data.set(imgData);
   init();
-  // ctx.putImageData(screenImage, 0, 0);
-
-  // canvas.style.display = 'none';
-  // let ind = 0;
-  // for (let i = 0; i < imgData.length; i+=4) {
-
-  //   ctx.fillStyle = `rgba(${imgData[i*multiX+2]},${imgData[i*multiX+1]},${imgData[i*multiX]},${imgData[i*multiX+3]})`//);//*multiX,i*multiY),16);
-  //   ctx.fillRect((ind)%(canvas.width),Math.floor((ind)/(canvas.width)),1,1);
-  //   ind++;
-  // }
 })
 
 
@@ -158,6 +133,26 @@ function init() {
   varying vec2 vUV;
   varying vec2 vTexCoord;
 
+  // 2D pseudorandom
+  float random(vec2 v) {
+    return fract(sin(dot(v,vec2(12.9898,78.233)))*43758.5453123);
+  }
+
+  float noise(vec2 v) {
+    vec2 iUv = floor(v*10.1*(1.0+sin(uTime/1.0)));
+    vec2 fUv = fract(v*10.1*(1.0+sin(uTime/1.0)));
+
+    // Four corners in 2D of a tile
+    float a = random(iUv);
+    float b = random(iUv + vec2(1.0, 0.0));
+    float c = random(iUv + vec2(0.0, 1.0));
+    float d = random(iUv + vec2(1.0, 1.0));
+
+    vec2 u = smoothstep(0.0,1.0,fUv);
+
+    return mix(a,b, u.x) + (c-a)* u.y * (1.0-u.x) + (d - b) *u.x*u.y;
+  }
+
   void main() {
     vec2 uv = vec2(vUV.x*uAspect, vUV.y);
     vec2 uCursor2 = vec2(uCursor.x*uAspect, uCursor.y);
@@ -165,6 +160,8 @@ function init() {
     float dist = distance(uv, uCursor2);
     
     vec2 transformedUV = vUV + 0.0001*uCursorVelocity/pow(dist,2.0);
+    transformedUV.y = transformedUV.y - (2.0 + sin(uTime*noise(vUV)/1000.0))*0.0002*noise(vUV);
+    // transformedUV *= (1.0 + sign(random(floor(vUV*1.0))-0.5)*distance(vUV,vec2(0.5))*0.01*sin(uTime/90000.9123)*5.0*noise(vUV));
     vec4 tex = texture2D(uImage, transformedUV);
 
     gl_FragColor = tex;

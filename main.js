@@ -54,7 +54,7 @@ function createWindow() {
   }, 500);
 
   let cursorPos, cursorColor, cursorRGB;
-  setInterval(() => {
+  setInterval(() => {    
     var mouse = electron.screen.getCursorScreenPoint();
     cursorPos = mouse;
     if ((cursorPos.x >= activeDisplay.workArea.x && cursorPos.y >= activeDisplay.workArea.y) &&

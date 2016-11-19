@@ -8,6 +8,7 @@ let mouseVelocity = [0, 0];
 
 const ipc = require('electron').ipcRenderer;
 const robot = require('robotjs');
+console.log(robot)
 
 
 
@@ -16,7 +17,7 @@ const robot = require('robotjs');
  ========================================================= */
 let screenImage;
 ipc.on('screen', function (event, screenCapture) {
-  const imgData = screenCapture.image;
+  let imgData = screenCapture.image;
   // for some reason, it seems that the rgb data being sent through robot js is actually ordered bgra...so we need to swizzle
   for (let i = 0; i < imgData.length; i += 4) {
     const tmp = imgData[i * 1];
@@ -118,9 +119,10 @@ function init() {
 
     gl_Position = vec4(clipSpace, 0.0, 1.0);
   }
-  `
+  `;
   const fragmentShaderSource = `
   precision highp float;
+  const float seed = ${Math.random()};
 
   uniform float uTime;
   uniform float uAspect;
@@ -135,12 +137,27 @@ function init() {
 
   // 2D pseudorandom
   float random(vec2 v) {
-    return fract(sin(dot(v,vec2(12.9898,78.233)))*43758.5453123);
+    return fract(sin(dot(v,vec2(12.9898,78.233)))*seed);
   }
 
-  float noise(vec2 v) {
-    vec2 iUv = floor(v*10.1*(1.0+sin(uTime/1.0)));
-    vec2 fUv = fract(v*10.1*(1.0+sin(uTime/1.0)));
+  float noiseOverTime(vec2 v) {
+    vec2 iUv = floor(v*12.1)*(1.0+sin(uTime/1.0));
+    vec2 fUv = fract(v*12.1)*(1.0+sin(uTime/1.0));
+
+    // Four corners in 2D of a tile
+    float a = random(iUv);
+    float b = random(iUv + vec2(1.0, 0.0));
+    float c = random(iUv + vec2(0.0, 1.0));
+    float d = random(iUv + vec2(1.0, 1.0));
+
+    vec2 u = smoothstep(0.0,1.0,fUv);
+
+    return mix(a,b, u.x) + (c-a)* u.y * (1.0-u.x) + (d - b) *u.x*u.y;
+  }
+
+    float noiseWithoutTime(vec2 v) {
+    vec2 iUv = floor(v*10.1);//*(1.0+sin(uTime/1.0));
+    vec2 fUv = fract(v*10.1);//*(1.0+sin(uTime/1.0));
 
     // Four corners in 2D of a tile
     float a = random(iUv);
@@ -160,11 +177,20 @@ function init() {
     float dist = distance(uv, uCursor2);
     
     vec2 transformedUV = vUV + 0.0001*uCursorVelocity/pow(dist,2.0);
-    transformedUV.y = transformedUV.y - (2.0 + sin(uTime*noise(vUV)/1000.0))*0.0002*noise(vUV);
+    transformedUV.y -= uTime/100000.*(seed*tan(vUV.x+0.5 + noiseWithoutTime(sin(vUV.x)*vUV.xy*1.)))*0.0001*noiseWithoutTime(vUV*1.);
+    // transformedUV.y -= uTime / 10000000.;
+    transformedUV.x -= uTime/100000.*(tan(vUV.x+0.5 + noiseWithoutTime(seed*tan(vUV.x)*vUV.xy*1.)))*0.0001*noiseWithoutTime(vUV*1.);
+
+    vec2 transformedUV2 = vUV + 0.0001*uCursorVelocity/pow(dist,2.0);
+    transformedUV2.y = transformedUV.y - (vUV.x*1.0 + noiseOverTime(vUV.xy*1.))*0.001*noiseOverTime(vUV*1.);
+
+    // transformedUV.x = transformedUV.x - clamp(sin(vUV.y*10.),0.0, 1.0)*0.002*noise(vUV*1.);
     // transformedUV *= (1.0 + sign(random(floor(vUV*1.0))-0.5)*distance(vUV,vec2(0.5))*0.01*sin(uTime/90000.9123)*5.0*noise(vUV));
     vec4 tex = texture2D(uImage, transformedUV);
-
-    gl_FragColor = tex;
+    vec4 texOff = texture2D(uImage, transformedUV+.0001);
+    vec4 texOff2 = texture2D(uImage, transformedUV2);
+    // tex.a = 0.2;
+    gl_FragColor = mix(tex, texOff2, 0.01);
   }
   `
   // create shaders

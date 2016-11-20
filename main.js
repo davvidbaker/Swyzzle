@@ -6,28 +6,57 @@ const BrowserWindow = electron.BrowserWindow
 
 console.log('electron version', process.versions.electron)
 console.log('electron architecture', process.arch)
-console.log(app.getPath('userData'))
 const {ipcMain} = require('electron');
-
-const path = require('path')
-const url = require('url')
+const fs = require('fs'); // fs used for user settings  
+const path = require('path');
+const url = require('url');
 const robot = require('robotjs');
 const menu = require('./menu.js');
 
+const defaultSettings = {
+  startTimeout: 1,
+  timeoutUnit: 's', // can be s or m or h
+  startTimeoutMS: 1000,
+  alwaysOnTop: true,
+  clickThrough: true,
+}
+
 const windows = new Map();
 
-// default settings
-const settings = {
-  startTimeout: 500,
+const readSettings = function() {
+  const file = `${app.getPath('userData')}/userSettings.json`;
+  return new Promise((resolve, reject) => {
+    fs.readFile(file, 'utf8', (err, data) => {
+      if (err) {
+        if (err.code == 'ENOENT') {
+          fs.writeFile(file, JSON.stringify(defaultSettings), err => {
+            if (err) reject(err);
+          });
+          resolve(defaultSettings);
+        }
+        else {
+          reject(err);
+        }
+      } else {
+        resolve(JSON.parse(data));
+      }
+    });
+  });
 }
+
 ipcMain.on('settings', (event, arg) => {
-  settings.startTimeout = arg; 
+  global.settings = arg;
+
+  // save the settings to disk
+  fs.writeFile(`${app.getPath('userData')}/userSettings.json`, JSON.stringify(global.settings), err => {
+    if (err) throw err;
+  });
+
   if (windows.has('mainWindow')) {
-    windows.get('mainWindow').webContents.send('settings', { arg });
     windows.get('mainWindow').close();
   }
   init();
-  console.log(settings);
+  console.log('new global settings', global.settings);
 });
 
 let cursorInterval;
@@ -59,7 +88,7 @@ function createWindow() {
     slashes: true
   }))
   windows.get('mainWindow').setIgnoreMouseEvents(true);
-  windows.get('mainWindow').setAlwaysOnTop(true);
+  windows.get('mainWindow').setAlwaysOnTop(global.settings.alwaysOnTop);
 
   // capture the screen and send it after a timeout
   // on Macs, the window can't go all the way to the top because the menu panel bar up there
@@ -106,10 +135,23 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', () => {
+const appReady = function() {
+  return new Promise((resolve, reject) => {
+    app.on('ready', () => {
+      console.log('app ready')
+      resolve();
+    })
+  })
+}
+
+Promise.all([appReady(), readSettings()]).then(values => {
+  console.log(values);
+  global.settings = values[1];
+  console.log('all promises resolved, settings are ', global.settings)
+  console.log('settings are this', global.settings)
   electron.Menu.setApplicationMenu(menu);
   init();
-})
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -130,9 +172,9 @@ app.on('activate', function () {
 
 let initTimeout;
 function init() {
-  console.log(`timing out in ${settings.startTimeout} ms`);;
+  console.log(`timing out in ${global.settings.startTimeoutMS} ms`);;
   if (initTimeout) clearTimeout(initTimeout);
-  initTimeout = setTimeout(createWindow, settings.startTimeout);
+  initTimeout = setTimeout(createWindow, global.settings.startTimeoutMS);
 }
 
 

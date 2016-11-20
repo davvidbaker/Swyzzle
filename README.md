@@ -6,7 +6,7 @@ To clone and run this repository you'll need [Git](https://git-scm.com) and [Nod
 
 ```bash
 # Clone this repository
-git clone https://github.com/DBaker2/Swyzzle
+git clone https://github.com/brainsandspace/Swyzzle
 # Go into the repository
 cd Swyzzle
 # Install dependencies

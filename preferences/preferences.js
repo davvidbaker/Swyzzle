@@ -1,28 +1,50 @@
 const ipcRenderer = require('electron').ipcRenderer;
-const startTimeEl = document.getElementById('start');
-const rangeEl = document.getElementById('range');
-const saveEl =  document.getElementById('save');
+const remote = require('electron').remote;
+const globalSettings = remote.getGlobal('settings');
 
-let timeoutVal = 5;
+const startSpan = document.getElementById('start');
+const timeInput = document.getElementById('time');
+const unitSelect = document.getElementById('unit');
+const saveBtn =  document.getElementById('save');
+const onTopCheckBox  = document.getElementById('on-top');
 
-rangeEl.oninput = changeStartTime;
+let localSettings;
+
+// populate the preferences with the user's prefs
+(function initializeSettings() {
+  // copy the globalSettings by value
+  localSettings = Object.assign({}, globalSettings);
+
+  timeInput.value = localSettings.startTimeout;
+  unitSelect.value = localSettings.timeoutUnits; // kinda surprised that this works
+})()
+
+timeInput.oninput = changeStartTime;
 function changeStartTime(evt) {
   const t = evt.target.value;
-  let str;
-  if (t < 10) {
-    timeoutVal = t * 6;
-    str = `${timeoutVal} seconds`
-  } else if (t < 60) {
-    timeoutVal = t * 60;
-    str = `${t} minutes`
-  } else {
-    timeoutVal = t * 60 * 60;
-    str = `${t} hours`
-  }
-  start.innerHTML = str;
+  localSettings.startTimeout = t;
 }
 
-saveEl.onclick = () => {
-  // send over the timeout in milliseconds
-  ipcRenderer.send('settings', timeoutVal * 1000);
+unitSelect.oninput = changeUnit;
+function changeUnit(evt) {
+  console.log(evt.target.value)
+  localSettings.timeoutUnit = evt.target.value;
+}
+
+// get start timeout in milliseconds
+function getStartMS(t) {
+  console.log(unitSelect.value)
+  switch(unitSelect.value) {
+    case 's': return t*1000;
+    case 'm': return t*1000*60;
+    case 'h': return t*1000*60*60;
+    default: return t*1000;
+  }
+}
+  
+
+saveBtn.onclick = () => {
+  // we are still use ipcRenderer instead of just setting globalSettings here because we are writing to the file system which should be done in main process 
+  localSettings.startTimeoutMS = getStartMS(localSettings.startTimeout);
+  ipcRenderer.send('settings', localSettings);
 }

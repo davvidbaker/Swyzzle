@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron ."
   },
-  "repository": "https://github.com/DBaker2/swyzzle",
+  "repository": "https://github.com/brainsandspace/swyzzle",
   "keywords": [
     "Mouse",
     "Cursor",

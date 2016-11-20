@@ -20,6 +20,13 @@ const template = [
       },
       {
         role: 'close'
+      },
+      {
+        label: 'reload',
+        accelerator: 'CmdOrCtrl+R',
+        click(item, focusedWindow) {
+          if (focusedWindow) focusedWindow.reload();
+        }
       }
     ]
   }

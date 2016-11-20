@@ -18,10 +18,15 @@
       padding: 0;
     }
     </style>
-    <label for="delay">Start after <span id="start">5s</span></label>
-    <br>
-    <input id="range" type="range" name="delay" value="5">
+    <label for="time">Start after</label>
+    <input id="time" type="number" name="delay" value="5">
+    <select id="unit"> 
+      <option value="s" selected>seconds</option>
+      <option value="m">minutes</option>
+      <option value="h">hours</option>
+    </select>
     <button id="save">Apply and Save</button>
+    <label for="on-top">Always on top<input type="checkbox"></label>
     <script>
     // You can also require other files to run in this process
     require('./preferences.js');

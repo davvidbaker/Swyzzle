@@ -6,7 +6,11 @@ const startSpan = document.getElementById('start');
 const timeInput = document.getElementById('time');
 const unitSelect = document.getElementById('unit');
 const saveBtn =  document.getElementById('save');
-const onTopCheckBox  = document.getElementById('on-top');
+const testBtn =  document.getElementById('test');
+const onTopCheckbox  = document.getElementById('on-top');
+const invisibleCheckbox  = document.getElementById('invisible');
+const modeSelect = document.getElementById('mode');
+const openLoginCheckbox  = document.getElementById('open-login');
 
 let localSettings;
 
@@ -16,24 +20,28 @@ let localSettings;
   localSettings = Object.assign({}, globalSettings);
 
   timeInput.value = localSettings.startTimeout;
-  unitSelect.value = localSettings.timeoutUnits; // kinda surprised that this works
+  unitSelect.value = localSettings.timeoutUnit;
+  onTopCheckbox.checked = localSettings.alwaysOnTop;
+  invisibleCheckbox.checked = localSettings.clickThrough;
+  openLoginCheckbox.checked = localSettings.clickThrough;
+  modeSelect.value = localSettings.mode;
 })()
 
-timeInput.oninput = changeStartTime;
-function changeStartTime(evt) {
-  const t = evt.target.value;
-  localSettings.startTimeout = t;
-}
+timeInput.oninput = (evt) => { localSettings.startTimeout = evt.target.value; }
 
-unitSelect.oninput = changeUnit;
-function changeUnit(evt) {
-  console.log(evt.target.value)
-  localSettings.timeoutUnit = evt.target.value;
-}
+unitSelect.oninput = (evt) => { localSettings.timeoutUnit = evt.target.value; }
+
+modeSelect.oninput = (evt) => { localSettings.mode = evt.target.value; }
+
+onTopCheckbox.onchange = (evt) => { localSettings.alwaysOnTop = evt.target.checked }
+
+invisibleCheckbox.onchange = (evt) => { localSettings.clickThrough = evt.target.checked }
+
+openLoginCheckbox.onchange = (evt) => { localSettings.openAtLogin = evt.target.checked }
+
 
 // get start timeout in milliseconds
 function getStartMS(t) {
-  console.log(unitSelect.value)
   switch(unitSelect.value) {
     case 's': return t*1000;
     case 'm': return t*1000*60;
@@ -41,7 +49,10 @@ function getStartMS(t) {
     default: return t*1000;
   }
 }
-  
+
+testBtn.onclick = () => {
+  ipcRenderer.send('test');
+}
 
 saveBtn.onclick = () => {
   // we are still use ipcRenderer instead of just setting globalSettings here because we are writing to the file system which should be done in main process 

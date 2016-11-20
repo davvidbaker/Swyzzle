@@ -19,6 +19,8 @@ const defaultSettings = {
   startTimeoutMS: 1000,
   alwaysOnTop: true,
   clickThrough: true,
+  openAtLogin: true,
+  mode: 'original',
 }
 
 const windows = new Map();
@@ -44,8 +46,26 @@ const readSettings = function() {
   });
 }
 
+ipcMain.on('test', (event, arg) => {
+   if (windows.has('mainWindow')) {
+    windows.get('mainWindow').close();
+  }
+  createWindow();
+});
+
+ipcMain.on('shader error', (event, arg) => {
+  console.log('shader error', arg)
+});
+ipcMain.on('program error', (event, arg) => {
+  console.log('program error', arg)
+});
+
 ipcMain.on('settings', (event, arg) => {
   global.settings = arg;
+   // set the app to open/not open on login (only supported on macOS)
+  // app.setLoginItemSettings({
+  //   openAtLogin: global.settings.openAtLogin
+  // });
 
   // save the settings to disk
   fs.writeFile(`${app.getPath('userData')}/userSettings.json`, JSON.stringify(global.settings), err => {
@@ -63,7 +83,6 @@ let cursorInterval;
 function createWindow() {
   app.focus();
   const displays = electron.screen.getAllDisplays();
-  console.log(displays);
   // as of 11/2016, robotjs only supports the main display
   const activeDisplay = displays[0];
 
@@ -79,6 +98,8 @@ function createWindow() {
     x: activeDisplay.bounds.x,
     y: activeDisplay.bounds.y,
   }));
+  windows.get('mainWindow').setIgnoreMouseEvents(global.settings.clickThrough);
+  windows.get('mainWindow').setAlwaysOnTop(global.settings.alwaysOnTop);
 
 
   // and load the index.html of the app.
@@ -87,8 +108,6 @@ function createWindow() {
     protocol: 'file:',
     slashes: true
   }))
-  windows.get('mainWindow').setIgnoreMouseEvents(true);
-  windows.get('mainWindow').setAlwaysOnTop(global.settings.alwaysOnTop);
 
   // capture the screen and send it after a timeout
   // on Macs, the window can't go all the way to the top because the menu panel bar up there
@@ -101,6 +120,7 @@ function createWindow() {
 
   let cursorPos, cursorColor, cursorRGB;
 
+  if (cursorInterval) clearInterval(cursorInterval);
   cursorInterval = setInterval(() => {   
     var mouse = electron.screen.getCursorScreenPoint();
     cursorPos = mouse;
@@ -128,7 +148,7 @@ function createWindow() {
     // Dereference the window object
     windows.delete('mainWindow'); 
     console.log('closed the main window')
-    if (cursorInterval) clearInterval(cursorInterval);
+    startWaitingForIdle();
   })
 }
 
@@ -138,19 +158,16 @@ function createWindow() {
 const appReady = function() {
   return new Promise((resolve, reject) => {
     app.on('ready', () => {
-      console.log('app ready')
       resolve();
     })
   })
 }
 
 Promise.all([appReady(), readSettings()]).then(values => {
-  console.log(values);
   global.settings = values[1];
-  console.log('all promises resolved, settings are ', global.settings)
-  console.log('settings are this', global.settings)
+
   electron.Menu.setApplicationMenu(menu);
-  init();
+  startWaitingForIdle();
 });
 
 // Quit when all windows are closed.
@@ -166,13 +183,31 @@ app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (!windows.has('mainWindow')) {
-    init();
+    startWaitingForIdle();
   }
 })
 
+// get the cursor position every 100ms and check if it has moved.
+// this is a hacky way to go about getting system idle timeout
+// TODO better method of getting idle time
+function startWaitingForIdle() {
+  let lastMouse = {x: 0, y: 0};
+
+  if (cursorInterval) clearInterval(cursorInterval);
+  cursorInterval = setInterval(() => {   
+    var mouse = electron.screen.getCursorScreenPoint();
+    // if you moved the mouse reset the countdown
+    if (lastMouse.x !== mouse.x || lastMouse.y !== mouse.y) {
+      init();
+    }
+    lastMouse = mouse;
+  }, 100);
+}
+
+
+
 let initTimeout;
 function init() {
-  console.log(`timing out in ${global.settings.startTimeoutMS} ms`);;
   if (initTimeout) clearTimeout(initTimeout);
   initTimeout = setTimeout(createWindow, global.settings.startTimeoutMS);
 }

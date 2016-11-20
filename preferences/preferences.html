@@ -16,17 +16,60 @@
       font-family: 'Lato';
       margin: 0;
       padding: 0;
+      color: white;
+      padding: 10px;
+    }
+    ul {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      list-style: outside;
+      height: 100%;
+      /*justify-content: space-around;*/
+    }
+    li {
+      margin-bottom: 10px;
+    }
+    #time{
+      width: 30px;
+      text-align: center;
     }
     </style>
-    <label for="time">Start after</label>
-    <input id="time" type="number" name="delay" value="5">
-    <select id="unit"> 
-      <option value="s" selected>seconds</option>
-      <option value="m">minutes</option>
-      <option value="h">hours</option>
-    </select>
-    <button id="save">Apply and Save</button>
-    <label for="on-top">Always on top<input type="checkbox"></label>
+    <ul>
+      <li>
+        <label for="time">Start after</label>
+        <input id="time" type="number" name="delay" value="5">
+        <select id="unit"> 
+          <option value="s" selected>seconds</option>
+          <option value="m">minutes</option>
+          <option value="h">hours</option>
+        </select> of not moving your mouse
+      </li>
+      <li>
+        <label for="on-top"><input name="on-top" type="checkbox" id="on-top">Always on top</label>
+      </li>
+      <li>
+        <input name="invisible" type="checkbox" id="invisible"><label for="invisible">Invisible to mouse clicks</label>
+      </li>
+      <li>
+        <input name="open-login" type="checkbox" id="open-login"><label for="open-login">Open Swyzzle when you log in</label>
+      </li>
+      <li>
+        <label for="time">Swyzzle Mode</label>
+        <select id="mode"> 
+          <option value="original" selected>original</option>
+          <option value="test">test</option>
+          <option value="h">hours</option>
+        </select>
+      </li>
+
+      
+      <button id="test">Test</button>
+      <button id="save">Apply and Save</button>
+    </ul>
+    
+
     <script>
     // You can also require other files to run in this process
     require('./preferences.js');

@@ -19,6 +19,9 @@ const template = [
         role: 'quit'
       },
       {
+        role: 'services'
+      },
+      {
         role: 'close'
       },
       {
@@ -26,6 +29,13 @@ const template = [
         accelerator: 'CmdOrCtrl+R',
         click(item, focusedWindow) {
           if (focusedWindow) focusedWindow.reload();
+        }
+      },
+      {
+        label: 'Toggle Dev Tools',
+        accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+        click(item, focusedWindow) {
+          if (focusedWindow) focusedWindow.webContents.toggleDevTools();
         }
       }
     ]
@@ -36,8 +46,6 @@ let preferencesWindow;
 
 
 function openPreferences() {
-  // console.log(session);
-  console.log(app)
   if (preferencesWindow == null) {
     preferencesWindow = new BrowserWindow({
       show: false,
@@ -54,7 +62,7 @@ function openPreferences() {
       preferencesWindow.show();
     });
 
-    preferencesWindow.webContents.openDevTools();
+    // preferencesWindow.webContents.openDevTools();
     preferencesWindow.on('closed', () => {
       preferencesWindow = null;
     });

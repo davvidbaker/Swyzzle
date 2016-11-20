@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Preferences</title>
+  </head>
+  <body>
+    <style>
+    @font-face {
+      font-family: 'Lato';
+      src: url('./../fonts/Lato/Lato-Regular.ttf');
+    }
+    body {
+      /*background: rgba(0,0,0,0.5);*/
+      background: #333;
+      font-family: 'Lato';
+      margin: 0;
+      padding: 0;
+    }
+    </style>
+    <label for="delay">Start after <span id="start">5s</span></label>
+    <br>
+    <input id="range" type="range" name="delay" value="5">
+    <button id="save">Apply and Save</button>
+    <script>
+    // You can also require other files to run in this process
+    require('./preferences.js');
+  </script>
+</html>

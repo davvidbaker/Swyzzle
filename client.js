@@ -10,7 +10,12 @@ const ipc = require('electron').ipcRenderer;
 const robot = require('robotjs');
 console.log(robot)
 
-
+/* =========================================================
+ COMMUNICATION w/ MAIN PROCESS —— updating settings
+ ========================================================= */
+ ipc.on('settings', (event, args) => {
+  //  startTimeout
+ });
 
 /* =========================================================
  COMMUNICATION w/ MAIN PROCESS —— receiving screen capture
@@ -182,17 +187,19 @@ function init() {
     transformedUV.x -= uTime/100000.*(tan(vUV.x+0.5 + noiseWithoutTime(seed*tan(vUV.x)*vUV.xy*1.)))*0.0001*noiseWithoutTime(vUV*1.);
 
     vec2 transformedUV2 = vUV + 0.0001*uCursorVelocity/pow(dist,2.0);
-    transformedUV2.y = transformedUV.y - (vUV.x*1.0 + noiseOverTime(vUV.xy*1.))*0.001*noiseOverTime(vUV*1.);
+    transformedUV2.y = transformedUV.y - (vUV.x*1.0 + noiseOverTime(vUV.xy*1.))*0.01*noiseOverTime(vUV*1.);
 
     // transformedUV.x = transformedUV.x - clamp(sin(vUV.y*10.),0.0, 1.0)*0.002*noise(vUV*1.);
     // transformedUV *= (1.0 + sign(random(floor(vUV*1.0))-0.5)*distance(vUV,vec2(0.5))*0.01*sin(uTime/90000.9123)*5.0*noise(vUV));
     vec4 tex = texture2D(uImage, transformedUV);
     vec4 texOff = texture2D(uImage, transformedUV+.0001);
     vec4 texOff2 = texture2D(uImage, transformedUV2);
-    // tex.a = 0.2;
+    // tex.a = 0.1;
     gl_FragColor = mix(tex, texOff2, 0.01);
   }
   `
+  // I just made it 
+
   // create shaders
   const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
   const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);

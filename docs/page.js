@@ -292,7 +292,7 @@ function init() {
     gl.uniform1f(uniforms.uFlipY, false);
     // ping pong through the effects
     ind++;
-    setFramebuffer(framebuffers[ind % 2], windowWidth, windowHeight)
+    setFramebuffer(framebuffers[ind % 2], logo.width, logo.height)
 
     gl.drawArrays(primitiveType, first, count);
 

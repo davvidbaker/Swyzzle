@@ -20,7 +20,7 @@ const defaultSettings = {
   alwaysOnTop: true,
   clickThrough: true,
   openAtLogin: true,
-  mode: 'original',
+  mode: 'og',
 }
 
 const windows = new Map();

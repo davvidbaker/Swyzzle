@@ -1,3 +1,5 @@
+// Most of this code is pulled straight from the electron app, so that's why some things may seem kind of off or roundabout.
+
 const canvasGL = document.createElement("canvas");
 let windowHeight = window.innerHeight;
 let windowWidth = window.innerWidth;
@@ -118,9 +120,6 @@ logo.src = './swyzzleLogo.png';
 logo.onload = init;
 
 function init() {
-  /* =========================================================
-  COMMUNICATION w/ MAIN PROCESS -- receiving mouse posiiton
-  ========================================================= */
   document.addEventListener('mousemove', evt => {
     let cursor = {
       pos:  {
@@ -132,9 +131,7 @@ function init() {
     // uniforms.uMouse.value = new THREE.Vector2(arg.x/windowWidth, arg.y/windowHeight);//.x = evt.clientX/width;  
 
     // neeed to make sure these values are being updated even if the main window isn't open which prevents window.request animation frame from being called
-    timer = Date.now() - startTime;
-    gl.uniform1f(uniforms.uTime, timer);
-    gl.uniform2f(uniforms.uCursor, newMouse[0], newMouse[1]);
+        gl.uniform2f(uniforms.uCursor, newMouse[0], newMouse[1]);
 
     // update mouse speed and...
     mouseVelocity = [newMouse[0] - oldMouse[0], newMouse[1] - oldMouse[1]]
@@ -157,7 +154,7 @@ function init() {
   canvasGL.style.position = 'fixed'
   canvasGL.style.left = 0,
   canvasGL.style.top = 0,
-  canvasGL.style.zIndex = 10000;
+  canvasGL.style.zIndex = 1;
   // canvasGL.style.pointerEvents = 'none'
 
   document.body.appendChild(canvasGL);
@@ -299,6 +296,9 @@ function init() {
   render();
 
   function render() {
+    timer = Date.now() - startTime;
+    gl.uniform1f(uniforms.uTime, timer);
+
     // we don't need to flip y in the framebuffers (also note that bools can be set as either floating point or integers)
     gl.uniform1f(uniforms.uFlipY, false);
     // ping pong through the effects

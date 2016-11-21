@@ -1,4 +1,4 @@
-# Swyzzle
+# Swyzzle [![Build Status](https://travis-ci.org/brainsandspace/Swyzzle.svg?branch=master)](https://travis-ci.org/brainsandspace/Swyzzle)
 
 ## To Use
 

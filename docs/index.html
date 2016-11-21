@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <title>Swyzzle</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
   </head>
   <body>
     <style>
@@ -10,11 +11,64 @@
       background: #fcbe1f;
       margin: 0;
       padding: 0;
+      font-family: 'Lato', sans-serif;
     }
-    img {
-      display: none;
+    .info {
+      background: #ddd;
+      position: absolute;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      align-items: center;
+      top: 100vh;
+      width: 100vw;
+      height: 50vh;
+      z-index: 2;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .item {
+      border: 1px solid #777;
+      padding: 20px;
+      text-align: center;
+    }
+    .item:hover {
+      background: #eee;
+    }
+    .item:active {
+      background: #777;
+    }
+    .os {
+      font-style: italic;
+      font-size: 0.8rem;
+      color: #333;
+    }
+    #beta {
+      position: fixed;
+      top: 20px;
+      right: -110px;
+      width: 300px;
+      transform: rotate(35deg);
+      background: black;
+      color: white;
+      z-index: 3;
+      text-align: center;
+      font-family: monospace;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
     }
     </style> 
-    <img id="logo" src="./swyzzleLogo.png" alt="Swyzzle">
+    <div id="beta">
+      BETA
+    </div>
+    <ul class="info">
+      <a href="https://github.com/brainsandspace/Swyzzle/blob/master/swyzzle-darwin-x64/swyzzle.zip" download><li class="item download">
+        Download the Desktop App<br><span class="os">OS X</span>
+      </li>
+      </a>
+    </ul>
     <script src="./page.js"></script>
 </html>

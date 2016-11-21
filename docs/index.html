@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <title>Swyzzle</title>
-    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet">
   </head>
   <body>
     <style>
@@ -30,14 +30,24 @@
     }
     .item {
       border: 1px solid #777;
+      background: #eee;
       padding: 20px;
       text-align: center;
     }
     .item:hover {
-      background: #eee;
+      background: #ddd;
     }
     .item:active {
       background: #777;
+    }
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+      list-style: none;
+      height: 100%;
+      padding: 0px 10px;
     }
     .os {
       font-style: italic;
@@ -56,19 +66,55 @@
       text-align: center;
       font-family: monospace;
     }
+    .bold {
+      font-weight: 700;
+    }
     a {
       text-decoration: none;
       color: inherit;
+      cursor: pointer;
+    }
+    .description {
+      height: 100%;
+      background: #eee;
+      /*padding: 10px;*/
+      /*max-width: 60vw;*/
+      max-height: 50vh;
+      overflow: scroll;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-around;
+    }
+    p {
+      padding: 10px;
     }
     </style> 
     <div id="beta">
       BETA
     </div>
     <ul class="info">
-      <a href="https://github.com/brainsandspace/Swyzzle/blob/master/swyzzle-darwin-x64/swyzzle.zip" download><li class="item download">
-        Download the Desktop App<br><span class="os">OS X</span>
+      <li class="description">
+        <p>
+          Swyzzle is a desktop app that melts your screen (and possibly your GPU). Original inspiration came from <a class="bold" href="http://iographica.com/">IOGraphica</a> and then I was all like, what if I could make my desktop melt?? o.O
+          <br>
+          <br>
+          If you're a fan, tell your friends about it. I guess if you are a huge fan and wanted to like give me money you could venmo me a dollar or something <a class="bold" href="https://venmo.com/dbakes">@dbakes</a>.
+        </p>
       </li>
-      </a>
+      <ul class="buttons">
+        <a href="https://github.com/brainsandspace/Swyzzle/blob/master/swyzzle-darwin-x64/swyzzle.zip" download>
+          <li class="item download">
+            Download the Desktop App<br><span class="os">OS X</span>
+          </li>
+        </a>
+        <a href="https://github.com/brainsandspace/Swyzzle">
+          <li class="item download">
+            Check Out the Source Code
+          </li>
+        </a>
+      </ul>
+      
     </ul>
     <script src="./page.js"></script>
 </html>

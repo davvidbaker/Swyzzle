@@ -110,7 +110,10 @@ const vertexShaderSource = `
   }
   `
 
-init();
+const logo = new Image();
+logo.onload = init;
+logo.src = './swyzzleLogo.png';
+
 function init() {
   /* =========================================================
   COMMUNICATION w/ MAIN PROCESS -- receiving mouse posiiton
@@ -221,7 +224,6 @@ function init() {
     const texture = createAndSetupTexture(gl);
     textures.push(texture);
 
-    let logo = document.getElementById('logo');
     // make texture same size as image
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, logo);
 

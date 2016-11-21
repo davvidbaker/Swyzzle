@@ -1,6 +1,6 @@
 const canvasGL = document.createElement("canvas");
-const windowHeight = window.innerHeight;
-const windowWidth = window.innerWidth;
+let windowHeight = window.innerHeight;
+let windowWidth = window.innerWidth;
 const startTime = Date.now();
 let timer = 0;
 let oldMouse = newMouse = [0.5, 0.5];
@@ -14,13 +14,16 @@ const vertexShaderSource = `
 
   attribute vec2 aPosPixels;
   attribute vec2 aTexCoord;
-
+  
+  varying vec2 vTexCoord;
   varying vec2 vUV;
 
   void main() {
-    // pixels to clip-space
-    // convert position from pixels to 0 -> 1
-    vec2 zeroToOne = aPosPixels / uResolution;
+    vTexCoord = aTexCoord;
+
+    // 0->1 to clip-space
+    //  0 -> 1
+    vec2 zeroToOne = aPosPixels;// / uResolution;
 
     // convert form 0 -> 1 to 0 -> 2
     vec2 zeroToTwo = zeroToOne * 2.0;
@@ -36,7 +39,6 @@ const vertexShaderSource = `
     gl_Position = vec4(clipSpace, 0.0, 1.0);
   }
   `;
-  console.log(vertexShaderSource)
   const fragmentShaderSource = `
   precision highp float;
   const float seed = ${Math.random()};
@@ -87,32 +89,33 @@ const vertexShaderSource = `
   }
 
   void main() {
-    vec2 uv = vec2(vUV.x*uAspect, vUV.y);
+    vec2 uv = vec2(vTexCoord.x, vTexCoord.y);
     vec2 uCursor2 = vec2(uCursor.x*uAspect, uCursor.y);
 
-    float dist = distance(uv, uCursor2);
+    float dist = distance(uv, uCursor);
     
-    vec2 transformedUV = vUV + 0.0001*uCursorVelocity/pow(dist,2.0);
-    transformedUV.y -= uTime/100000.*(seed*tan(vUV.x+0.5 + noiseWithoutTime(sin(vUV.x)*vUV.xy*1.)))*0.0001*noiseWithoutTime(vUV*1.);
+    vec2 transformedUV = uv + 0.0001*uCursorVelocity/pow(dist,2.0);
+    transformedUV.y -= uTime/100000.*(seed*tan(uv.x+0.5 + noiseWithoutTime(sin(uv.x)*uv.xy*1.)))*0.0001*noiseWithoutTime(uv*1.);
     // transformedUV.y -= uTime / 10000000.;
-    transformedUV.x -= uTime/100000.*(tan(vUV.x+0.5 + noiseWithoutTime(seed*tan(vUV.x)*vUV.xy*1.)))*0.0001*noiseWithoutTime(vUV*1.);
+    transformedUV.x -= uTime/100000.*(tan(uv.x+0.5 + noiseWithoutTime(seed*tan(uv.x)*uv.xy*1.)))*0.0001*noiseWithoutTime(uv*1.);
 
-    vec2 transformedUV2 = vUV + 0.0001*uCursorVelocity/pow(dist,2.0);
-    transformedUV2.y = transformedUV.y - (vUV.x*1.0 + noiseOverTime(vUV.xy*1.))*0.01*noiseOverTime(vUV*1.);
+    vec2 transformedUV2 = uv + 0.0001*uCursorVelocity/pow(dist,2.0);
+    transformedUV2.y = transformedUV.y - (uv.x*1.0 + noiseOverTime(uv.xy*1.))*0.01*noiseOverTime(uv*1.);
 
-    // transformedUV.x = transformedUV.x - clamp(sin(vUV.y*10.),0.0, 1.0)*0.002*noise(vUV*1.);
-    // transformedUV *= (1.0 + sign(random(floor(vUV*1.0))-0.5)*distance(vUV,vec2(0.5))*0.01*sin(uTime/90000.9123)*5.0*noise(vUV));
+    // transformedUV.x = transformedUV.x - clamp(sin(uv.y*10.),0.0, 1.0)*0.002*noise(uv*1.);
+    // transformedUV *= (1.0 + sign(random(floor(uv*1.0))-0.5)*distance(uv,vec2(0.5))*0.01*sin(uTime/90000.9123)*5.0*noise(uv));
     vec4 tex = texture2D(uImage, transformedUV);
     vec4 texOff = texture2D(uImage, transformedUV+.0001);
     vec4 texOff2 = texture2D(uImage, transformedUV2);
     // tex.a = 0.1;
+
     gl_FragColor = mix(tex, texOff2, 0.01);
   }
   `
 
 const logo = new Image();
-logo.onload = init;
 logo.src = './swyzzleLogo.png';
+logo.onload = init;
 
 function init() {
   /* =========================================================
@@ -150,11 +153,11 @@ function init() {
     // premultipliedAlpha: false
   });
   canvasGL.width = windowWidth;
-  canvasGL.height = windowHeight
+  canvasGL.height = windowHeight;
   canvasGL.style.position = 'fixed'
   canvasGL.style.left = 0,
-    canvasGL.style.top = 0,
-    canvasGL.style.zIndex = 10000;
+  canvasGL.style.top = 0,
+  canvasGL.style.zIndex = 10000;
   // canvasGL.style.pointerEvents = 'none'
 
   document.body.appendChild(canvasGL);
@@ -188,10 +191,10 @@ function init() {
   // ...and then add data by referencing it through the bind point
   const positions = [
     0, 0,
-    windowWidth, 0,
-    windowWidth, windowHeight,
-    windowWidth, windowHeight,
-    0, windowHeight,
+    1.0, 0,
+    1.0, 1.0,
+    1.0, 1.0,
+    0, 1.0,
     0, 0
   ]
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
@@ -200,8 +203,16 @@ function init() {
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
   const aTexCoordBuffer = gl.createBuffer();
+  const texPositions = [
+    0, 0,
+    1.0, 0,
+    1.0, 1.0,
+    1.0, 1.0,
+    0, 1.0,
+    0, 0
+  ]
   gl.bindBuffer(gl.ARRAY_BUFFER, aTexCoordBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texPositions), gl.STATIC_DRAW);
 
   const textures = [];
   const framebuffers = [];
@@ -272,7 +283,7 @@ function init() {
   gl.enableVertexAttribArray(attributes.aTexCoordLocation);
   // bind the tex coord buffer
   gl.bindBuffer(gl.ARRAY_BUFFER, aTexCoordBuffer);
-  // bint attribute to aTexCoordBuffer
+  // bind attribute to aTexCoordBuffer
   gl.vertexAttribPointer(attributes.aTexCoordLocation, size, type, normalize, stride, offset);
 
   /* =============================
@@ -308,7 +319,8 @@ function init() {
       // make this the frame buffer we are rendering to 
       gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
       // tell the shader the resolution of the framebuffer
-      gl.uniform2f(uniforms.uResolution, width, height); // tell webgl the viewport setting needed for framebuffer
+      // gl.uniform2f(uniforms.uResolution, width, height); // tell webgl the viewport setting needed for framebuffer
+      // gl.uniform1f(uniforms.uAspect, width/height); // tell webgl the viewport setting needed for framebuffer
       gl.viewport(0, 0, width, height);
     }
 
@@ -351,3 +363,10 @@ function init() {
     }
   }
 }
+
+window.addEventListener('resize', () => {
+  windowWidth = window.innerWidth;
+  windowHeight = window.innerHeight;
+  canvasGL.width = windowWidth;
+  canvasGL.height = windowHeight;
+})

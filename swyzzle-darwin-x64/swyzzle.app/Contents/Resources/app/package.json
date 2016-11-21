@@ -1,0 +1,29 @@
+{
+  "name": "swyzzle",
+  "version": "1.0.0",
+  "description": "A fun way to visualize your actions on the computer throughout the day.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/brainsandspace/swyzzle",
+  "keywords": [
+    "Mouse",
+    "Cursor",
+    "webgl",
+    "GLSL",
+    "overlay",
+    "art"
+  ],
+  "author": "David Baker",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^1.4.7",
+    "electron-packager": "^8.3.0",
+    "electron-rebuild": "^1.3.0"
+  },
+  "dependencies": {
+    "node-gyp": "^3.4.0",
+    "robotjs": "^0.4.5"
+  }
+}

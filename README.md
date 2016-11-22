@@ -21,7 +21,12 @@ This app was made with Electron. To learn more about Electron and its API in the
 Run `electron-packager . --overwrite` _assuming you are on a Mac_. For more information about packaging see the [electron-packager documentation](https://github.com/electron-userland/electron-packager)
 
 # TODO
-- [ ] Create advanced section in preferences that allows you to write your own shaders (that can use a predetermined list of uniforms and attributes, like in ShaderToy)
-- [ ] Allow user to save aforementioned custom shaders
+- [ ] Create advanced button and section in preferences that allows you to write your own shaders (that can use a predetermined list of uniforms and attributes, like in ShaderToy)
+- [ ] Allow user to save and manage aforementioned custom shaders
+- [ ] Tray icon and remove dock icon
+- [ ] In settings, ability to define keys/clicks/other triggers to escape idle mode
+- [x] Separate active mode
+- [ ] Ability to open Swyzzle on login
+
 #### License [MIT](LICENSE.md)
 

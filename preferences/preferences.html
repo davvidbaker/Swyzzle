@@ -38,7 +38,8 @@
     </style>
     <ul>
       <li>
-        <label for="time">Start after</label>
+        MAKE IT MORE OBVIOUS THAT THESE SETTINGS ONLY APPLY TO IDLE SWYZZLE, THE ACTIVE IS ALWAYS on top and invisible to mouse events
+        <label for="time">Start idle Swyzzle after</label>
         <input id="time" type="number" name="delay" value="5">
         <select id="unit"> 
           <option value="s" selected>seconds</option>
@@ -55,18 +56,27 @@
       <li>
         <input name="open-login" type="checkbox" id="open-login"><label for="open-login">Open Swyzzle when you log in</label>
       </li>
+      <br>
       <li>
-        <label for="time">Swyzzle Mode</label>
+        <label for="time">Idle Swyzzle</label>
         <select id="idle-mode"> 
+          <option value="none">none</option>          
           <!-- the options are auto populated in the preferences.js script -->
-          <!--<option value="og" selected>og</option>
-          <option value="gameOfStrife">game of strife</option>
-          <option value="dev">dev</option>-->
         </select>
       </li>
-
-      
-      <button id="test">Test</button>
+      <li>
+        <label for="time">Active Swyzzle</label>
+        <select id="active-mode"> 
+          <option value="none">none</option>
+          <!-- the options are auto populated in the preferences.js script -->
+        </select>
+      </li>
+      <li>  
+        <button id="preview-idle">Preview Idle</button>
+        <button id="preview-active">Preview Active</button>
+      </li>
+      <br>
+      <br>      
       <button id="save">Apply and Save</button>
     </ul>
     

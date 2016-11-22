@@ -2,7 +2,8 @@ const electron = require('electron')
 // Module to control application life.
 const app = electron.app
 // Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow
+const BrowserWindow = electron.BrowserWindow  
+
 
 console.log('electron version', process.versions.electron)
 console.log('electron architecture', process.arch)
@@ -12,7 +13,7 @@ const path = require('path');
 const url = require('url');
 const robot = require('robotjs');
 const menu = require('./menu.js');
-
+ 
 const defaultSettings = {
   startTimeout: 1,
   timeoutUnit: 's', // can be s or m or h
@@ -21,6 +22,7 @@ const defaultSettings = {
   clickThrough: false,
   openAtLogin: false,
   idleMode: 'og',
+  activeMode: 'none',
 }
 
 const windows = new Map();
@@ -45,11 +47,17 @@ const readSettings = function() {
   });
 }
 
-ipcMain.on('test', (event, arg) => {
-   if (windows.has('mainWindow')) {
-    windows.get('mainWindow').close();
+ipcMain.on('preview idle', (event, previewSettings) => {
+   if (windows.has('swyzzleWindow')) {
+    windows.get('swyzzleWindow').close();
   }
-  createWindow();
+  createSwyzzleWindow('idle', previewSettings);
+});
+ipcMain.on('preview active', (event, previewSettings) => {
+   if (windows.has('swyzzleWindow')) {
+    windows.get('swyzzleWindow').close();
+  }
+  createSwyzzleWindow('active', previewSettings);
 });
 
 ipcMain.on('shader error', (event, arg) => {
@@ -59,7 +67,7 @@ ipcMain.on('program error', (event, arg) => {
   console.log('program error', arg)
 });
 
-ipcMain.on('settings', (event, arg) => {
+ipcMain.on('save settings', (event, arg) => {
   global.settings = arg;
    // set the app to open/not open on login (only supported on macOS)
   // app.setLoginItemSettings({
@@ -71,16 +79,30 @@ ipcMain.on('settings', (event, arg) => {
     if (err) throw err;
   });
 
-  if (windows.has('mainWindow')) {
-    windows.get('mainWindow').close();
+  if (windows.has('swyzzleWindow')) {
+    windows.get('swyzzleWindow').close();
   }
-  init();
+
+  if (global.settings.activeMode !== 'none') initActive();
+  resetIdleTimeout();
   console.log('new global settings', global.settings);
 });
 
 let cursorInterval;
-function createWindow() {
-  console.log('created new window')
+/**
+ * Creates and opens the idle window, which is the size of the primary display.
+ * We never have both idle and active windows open at the same time, to avoid too much GPU activity.
+ * 
+ * @param {string} swyzzleType can be either 'active' or 'idle'
+ * @param {object} settings [settings=global.settings]
+ */
+function createSwyzzleWindow(swyzzleType, settings = global.settings) {
+  if (windows.has('swyzzleWindow')) {
+    windows.get('swyzzleWindow').close();
+  }
+  console.log('created new window with settings', settings);
+  if (settings[`${swyzzleType}Mode`] === 'none') return;
+
   app.focus();
   const displays = electron.screen.getAllDisplays();
   // as of 11/2016, robotjs only supports the main display
@@ -89,7 +111,7 @@ function createWindow() {
   const width = activeDisplay.workArea.width;
   const height = activeDisplay.workArea.height;
   // Create the browser window.
-  windows.set('mainWindow', new BrowserWindow({
+  windows.set('swyzzleWindow', new BrowserWindow({
     show: false, // show the window gracefully
     width: width,
     height: height,
@@ -98,12 +120,21 @@ function createWindow() {
     x: activeDisplay.bounds.x,
     y: activeDisplay.bounds.y,
   }));
-  windows.get('mainWindow').setIgnoreMouseEvents(global.settings.clickThrough);
-  windows.get('mainWindow').setAlwaysOnTop(global.settings.alwaysOnTop);
+  windows.get('swyzzleWindow').settings = settings;
+  windows.get('swyzzleWindow').swyzzleType = swyzzleType;
+
+  // active swyzzle window can always be clicked through, and mouse events are always ignored
+  if (swyzzleType === 'active') {
+    windows.get('swyzzleWindow').setIgnoreMouseEvents(true);
+    windows.get('swyzzleWindow').setAlwaysOnTop(true);
+  } else {
+    windows.get('swyzzleWindow').setIgnoreMouseEvents(settings.clickThrough);
+    windows.get('swyzzleWindow').setAlwaysOnTop(settings.alwaysOnTop);
+  }
 
 
   // and load the index.html of the app.
-  windows.get('mainWindow').loadURL(url.format({
+  windows.get('swyzzleWindow').loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
     protocol: 'file:',
     slashes: true
@@ -113,10 +144,11 @@ function createWindow() {
   // on Macs, the window can't go all the way to the top because the menu panel bar up there
   const workArea = electron.screen.getPrimaryDisplay().workArea;
   let screenCapture = robot.screen.capture(workArea.x, workArea.y, workArea.width, workArea.height);
-  setTimeout(() => {
+  const screenCaptureTimeout = setTimeout(() => {
     console.log('sent screen capture');
-    windows.get('mainWindow').webContents.send('screen', screenCapture);
-    windows.get('mainWindow').webContents.send('test', 'testing');
+    // check that it exists, in case swyzzle window was closed during that half second
+    if (windows.has('swyzzleWindow'))
+      windows.get('swyzzleWindow').webContents.send('screen', screenCapture);
   }, 500);
 
   let cursorPos, cursorColor, cursorRGB;
@@ -135,21 +167,27 @@ function createWindow() {
         g: parseInt(cursorColor[2].concat(cursorColor[3]), 16) / 255,
         b: parseInt(cursorColor[4].concat(cursorColor[5]), 16) / 255
       };
-      if (windows.has('mainWindow')) windows.get('mainWindow').webContents.send('cursor', { pos: cursorPos, color: cursorRGB });
+      if (windows.has('swyzzleWindow')) windows.get('swyzzleWindow').webContents.send('cursor', { pos: cursorPos, color: cursorRGB });
     }
   }, 16);
 
   // gracefully show the main window
-  windows.get('mainWindow').once('ready-to-show', () => {
-    windows.get('mainWindow').show();
+  windows.get('swyzzleWindow').once('ready-to-show', () => {
+    windows.get('swyzzleWindow').show();
   });
 
   // Emitted when the window is closed.
-  windows.get('mainWindow').on('closed', function () {
+  windows.get('swyzzleWindow').on('closed', function () {
     // Dereference the window object
-    windows.delete('mainWindow'); 
-    console.log('closed the main window')
-    startWaitingForIdle();
+    windows.delete('swyzzleWindow'); 
+
+    if (screenCaptureTimeout) clearTimeout(screenCaptureTimeout);
+    console.log('closed the main window of type', swyzzleType)
+
+    // if the window that just closed was the idle window, initiate active, if it exists
+    if (global.settings.activeMode !== 'none' && swyzzleType === 'idle') initActive();
+    
+    // startWaitingForIdle();
   })
 }
 
@@ -168,6 +206,7 @@ Promise.all([appReady(), readSettings()]).then(values => {
   global.settings = values[1];
 
   electron.Menu.setApplicationMenu(menu);
+  if (global.settings.activeMode !== 'none') initActive();
   startWaitingForIdle();
 });
 
@@ -183,8 +222,9 @@ app.on('window-all-closed', function () {
 app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (!windows.has('mainWindow')) {
-    startWaitingForIdle();
+  if (!windows.has('swyzzleWindow')) {
+    if (global.settings.activeMode !== 'none') initActive();
+    // startWaitingForIdle();
   }
 })
 
@@ -194,23 +234,32 @@ app.on('activate', function () {
 function startWaitingForIdle() {
   let lastMouse = {x: 0, y: 0};
 
-  if (cursorInterval) clearInterval(cursorInterval);
-  cursorInterval = setInterval(() => {   
+   setInterval(() => {   
     var mouse = electron.screen.getCursorScreenPoint();
     // if you moved the mouse reset the countdown
     if (lastMouse.x !== mouse.x || lastMouse.y !== mouse.y) {
-      init();
+      resetIdleTimeout();
     }
     lastMouse = mouse;
   }, 100);
 }
 
-
+function initActive() {
+  if (windows.has('swyzzleWindow')) {
+    windows.get('swyzzleWindow').close();
+  }
+  createSwyzzleWindow('active');
+}
 
 let initTimeout;
-function init() {
+function resetIdleTimeout() {
   if (initTimeout) clearTimeout(initTimeout);
-  initTimeout = setTimeout(createWindow, global.settings.startTimeoutMS);
+  initTimeout = setTimeout(() => {
+    if (windows.has('swyzzleWindow')) {
+      windows.get('swyzzleWindow').close();
+    }
+    createSwyzzleWindow('idle');
+  }, global.settings.startTimeoutMS);
 }
 
 

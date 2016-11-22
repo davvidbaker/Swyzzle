@@ -8,25 +8,48 @@ const startSpan = document.getElementById('start');
 const timeInput = document.getElementById('time');
 const unitSelect = document.getElementById('unit');
 const saveBtn =  document.getElementById('save');
-const testBtn =  document.getElementById('test');
+const previewIdleBtn =  document.getElementById('preview-idle');
+const previewActiveBtn =  document.getElementById('preview-active');
 const onTopCheckbox  = document.getElementById('on-top');
 const invisibleCheckbox  = document.getElementById('invisible');
 const idleModeSelect = document.getElementById('idle-mode');
+const activeModeSelect = document.getElementById('active-mode');
 const openLoginCheckbox  = document.getElementById('open-login');
 
 let localSettings;
 
 // populate the swyzzle active and idle mode options by browsing the shaders directory
-fs.readdir(path.join(__dirname, '../shaders/idle'), (err, files) => {
-  if (err) console.error(err);
-  files.forEach(file => {
-    const option = document.createElement('option');
-    option.text = file.match(/(.*)\.js$/)[1];
-    option.value = file.match(/(.*)\.js$/)[1];
-    idleModeSelect.add(option);
-    initializeSettings();
-  });
-});
+const readIdlePromise = function() {
+  return new Promise((resolve, reject) => {
+    fs.readdir(path.join(__dirname, '../shaders/idle'), (err, files) => {
+      if (err) { console.error(err); reject(err); }
+      files.forEach(file => {
+        const option = document.createElement('option');
+        option.text = file.match(/(.*)\.js$/)[1];
+        option.value = file.match(/(.*)\.js$/)[1];
+        idleModeSelect.add(option);
+      });
+      console.log('resolving readIdlePromise');
+      resolve();
+    });
+  })
+};
+const readActivePromise = function() {
+  return new Promise((resolve, reject) => {
+    fs.readdir(path.join(__dirname, '../shaders/active'), (err, files) => {
+      if (err) { console.error(err); reject(err); }
+      files.forEach(file => {
+        const option = document.createElement('option');
+        option.text = file.match(/(.*)\.js$/)[1];
+        option.value = file.match(/(.*)\.js$/)[1];
+        activeModeSelect.add(option);
+      });
+      console.log('resolving readActivePromise');
+      resolve();
+    });
+  })
+};
+Promise.all([readIdlePromise(), readActivePromise()]).then(initializeSettings);
 
 // populate the preferences with the user's prefs
 function initializeSettings() {
@@ -39,16 +62,16 @@ function initializeSettings() {
   invisibleCheckbox.checked = localSettings.clickThrough;
   openLoginCheckbox.checked = localSettings.clickThrough;
   idleModeSelect.value = localSettings.idleMode;
+  activeModeSelect.value = localSettings.activeMode;
 };
 
 timeInput.oninput = (evt) => { localSettings.startTimeout = evt.target.value; }
-
 unitSelect.oninput = (evt) => { localSettings.timeoutUnit = evt.target.value; }
 
 idleModeSelect.oninput = (evt) => { localSettings.idleMode = evt.target.value; }
+activeModeSelect.oninput = (evt) => { localSettings.activeMode = evt.target.value; }
 
 onTopCheckbox.onchange = (evt) => { localSettings.alwaysOnTop = evt.target.checked }
-
 invisibleCheckbox.onchange = (evt) => { localSettings.clickThrough = evt.target.checked }
 
 openLoginCheckbox.onchange = (evt) => { localSettings.openAtLogin = evt.target.checked }
@@ -64,12 +87,15 @@ function getStartMS(t) {
   }
 }
 
-testBtn.onclick = () => {
-  ipcRenderer.send('test');
+previewIdleBtn.onclick = () => {
+  ipcRenderer.send('preview idle', localSettings);
+}
+previewActiveBtn.onclick = () => {
+  ipcRenderer.send('preview active', localSettings);
 }
 
 saveBtn.onclick = () => {
   // we are still use ipcRenderer instead of just setting globalSettings here because we are writing to the file system which should be done in main process 
   localSettings.startTimeoutMS = getStartMS(localSettings.startTimeout);
-  ipcRenderer.send('settings', localSettings);
+  ipcRenderer.send('save settings', localSettings);
 }

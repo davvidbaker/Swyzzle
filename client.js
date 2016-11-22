@@ -11,11 +11,16 @@ const remote = require('electron').remote;
 const robot = require('robotjs');
 const path = require('path');
 
+const settings = remote.getCurrentWindow().settings;
+const swyzzleType = remote.getCurrentWindow().swyzzleType;
+console.log(settings)
+console.log(swyzzleType)
 /* =========================================================
     CHOOSE WHICH SHADERS TO USE BASED ON GLOBAL SETTINGS
  ========================================================= */
-const globalSettings = remote.getGlobal('settings');
-const {vertexShaderSource, fragmentShaderSource} = require(path.join(__dirname,`./shaders/idle/${globalSettings.idleMode}.js`));
+// const globalSettings = remote.getGlobal('settings');
+const shadersPath = `./shaders/${swyzzleType}/${settings[`${swyzzleType}Mode`]}.js`
+const {vertexShaderSource, fragmentShaderSource} = require(path.join(__dirname, shadersPath));
 
 /* =========================================================
  COMMUNICATION w/ MAIN PROCESS —— receiving screen capture

@@ -9,13 +9,13 @@ let mouseVelocity = [0, 0];
 const ipc = require('electron').ipcRenderer;
 const remote = require('electron').remote;
 const robot = require('robotjs');
-console.log(robot)
+const path = require('path');
 
 /* =========================================================
     CHOOSE WHICH SHADERS TO USE BASED ON GLOBAL SETTINGS
  ========================================================= */
 const globalSettings = remote.getGlobal('settings');
-const {vertexShaderSource, fragmentShaderSource} = require(`./shaders/${globalSettings.mode}.js`)
+const {vertexShaderSource, fragmentShaderSource} = require(path.join(__dirname,`./shaders/idle/${globalSettings.idleMode}.js`));
 
 /* =========================================================
  COMMUNICATION w/ MAIN PROCESS —— receiving screen capture

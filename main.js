@@ -17,14 +17,13 @@ const defaultSettings = {
   startTimeout: 1,
   timeoutUnit: 's', // can be s or m or h
   startTimeoutMS: 1000,
-  alwaysOnTop: true,
-  clickThrough: true,
-  openAtLogin: true,
-  mode: 'og',
+  alwaysOnTop: false,
+  clickThrough: false,
+  openAtLogin: false,
+  idleMode: 'og',
 }
 
 const windows = new Map();
-
 const readSettings = function() {
   const file = `${app.getPath('userData')}/userSettings.json`;
   return new Promise((resolve, reject) => {
@@ -81,6 +80,7 @@ ipcMain.on('settings', (event, arg) => {
 
 let cursorInterval;
 function createWindow() {
+  console.log('created new window')
   app.focus();
   const displays = electron.screen.getAllDisplays();
   // as of 11/2016, robotjs only supports the main display
@@ -114,6 +114,7 @@ function createWindow() {
   const workArea = electron.screen.getPrimaryDisplay().workArea;
   let screenCapture = robot.screen.capture(workArea.x, workArea.y, workArea.width, workArea.height);
   setTimeout(() => {
+    console.log('sent screen capture');
     windows.get('mainWindow').webContents.send('screen', screenCapture);
     windows.get('mainWindow').webContents.send('test', 'testing');
   }, 500);

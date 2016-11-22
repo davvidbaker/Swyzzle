@@ -88,12 +88,13 @@ const vertexShader = `
     float n = length(neighborSum.rgb);
   
     vec4 outColor = vec4(uColor, 1.0);
-    if (distance(uCursor2 + uCursorVelocity * 10.0, uv) < 0.04) {
-      outColor.rgb = uColor * 2.0;
+    if (distance(uCursor2 + uCursorVelocity, uv) < 0.04) {
+      vec4 transformedUV = texture2(uImage, uv + uCursorVelocity
+      outColor.g = uColor.b;
       outColor.a = 0.001;
     } else {
       outColor = texel;
-      outColor *= 0.9;
+      // outColor *= 0.9;
       // outColor = vec4(0.0);
       // discard;
     }
@@ -101,7 +102,7 @@ const vertexShader = `
 
     
 
-    gl_FragColor = outColor;//mix(texel, outColor, .2);// sin(uTime/1000.0)/2.0 + 1.0);
+    gl_FragColor = outColor;
    }
   `
 

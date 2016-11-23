@@ -11,7 +11,7 @@ const template = [
     label: app.getName(),
     submenu: [
       {
-        label: 'Preferences',
+        label: 'Preferences...',
         accelerator: process.platform === 'darwin' ? 'Command+,' : 'Ctrl+,',
         click: openPreferences
       },
@@ -19,13 +19,10 @@ const template = [
         role: 'quit'
       },
       {
-        role: 'services'
-      },
-      {
         role: 'close'
       },
       {
-        label: 'reload',
+        label: 'Reload',
         accelerator: 'CmdOrCtrl+R',
         click(item, focusedWindow) {
           if (focusedWindow) focusedWindow.reload();
@@ -43,7 +40,6 @@ const template = [
 ]
 
 let preferencesWindow;
-
 
 function openPreferences() {
   if (preferencesWindow == null) {
@@ -74,6 +70,10 @@ function openPreferences() {
     slashes: true,
   }))
 }
-const menu = Menu.buildFromTemplate(template)
+const menu = Menu.buildFromTemplate(template);
 
-module.exports = menu;
+module.exports = {
+  menu: menu,
+  preferencesWindow: preferencesWindow,
+  openPreferences: openPreferences,
+};

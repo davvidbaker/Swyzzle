@@ -18,7 +18,9 @@ npm start
 This app was made with Electron. To learn more about Electron and its API in the [documentation](http://electron.atom.io/docs/latest).
 
 ## Packaging
-Run `electron-packager . --overwrite` _assuming you are on a Mac_. For more information about packaging see the [electron-packager documentation](https://github.com/electron-userland/electron-packager)
+- Run `electron-packager . --overwrite` _assuming you are on a Mac_. For more information about packaging see the [electron-packager documentation](https://github.com/electron-userland/electron-packager)
+- Go in and change capitalize swizzle in the package contents. There's probably a much better way to do this, but since I couldn't name the module with a capital first letter, this is what I've done.
+
 
 # TODO
 - [ ] Create advanced button and section in preferences that allows you to write your own shaders (that can use a predetermined list of uniforms and attributes, like in ShaderToy)

@@ -1,8 +1,10 @@
 const ipcRenderer = require('electron').ipcRenderer;
 const remote = require('electron').remote;
-const globalSettings = remote.getGlobal('settings');
 const fs = require('fs');
 const path = require('path');
+const globalSettings = remote.getGlobal('settings');
+const globalActiveModes = remote.getGlobal('activeModes');
+const globalIdleModes = remote.getGlobal('idleModes');
 
 const startSpan = document.getElementById('start');
 const timeInput = document.getElementById('time');
@@ -19,40 +21,44 @@ const openLoginCheckbox  = document.getElementById('open-login');
 let localSettings;
 
 // populate the swyzzle active and idle mode options by browsing the shaders directory
-const readIdlePromise = function() {
-  return new Promise((resolve, reject) => {
-    fs.readdir(path.join(__dirname, '../shaders/idle'), (err, files) => {
-      if (err) { console.error(err); reject(err); }
-      files.forEach(file => {
-        const option = document.createElement('option');
-        option.text = file.match(/(.*)\.js$/)[1];
-        option.value = file.match(/(.*)\.js$/)[1];
-        idleModeSelect.add(option);
-      });
-      console.log('resolving readIdlePromise');
-      resolve();
-    });
-  })
-};
-const readActivePromise = function() {
-  return new Promise((resolve, reject) => {
-    fs.readdir(path.join(__dirname, '../shaders/active'), (err, files) => {
-      if (err) { console.error(err); reject(err); }
-      files.forEach(file => {
-        const option = document.createElement('option');
-        option.text = file.match(/(.*)\.js$/)[1];
-        option.value = file.match(/(.*)\.js$/)[1];
-        activeModeSelect.add(option);
-      });
-      console.log('resolving readActivePromise');
-      resolve();
-    });
-  })
-};
-Promise.all([readIdlePromise(), readActivePromise()]).then(initializeSettings);
-
+// const readIdlePromise = function() {
+//   return new Promise((resolve, reject) => {
+//     fs.readdir(path.join(__dirname, '../shaders/idle'), (err, files) => {
+//       if (err) { console.error(err); reject(err); }
+      
+//       console.log('resolving readIdlePromise');
+//       resolve();
+//     });
+//   })
+// };
+// const readActivePromise = function() {
+//   return new Promise((resolve, reject) => {
+//     fs.readdir(path.join(__dirname, '../shaders/active'), (err, files) => {
+//       if (err) { console.error(err); reject(err); }
+      
+//       console.log('resolving readActivePromise');
+//       resolve();
+//     });
+//   })
+// };
+initializeSettings()
 // populate the preferences with the user's prefs
 function initializeSettings() {
+  // populate the swyzzle active and idle mode options
+  console.log('gim',globalIdleModes)
+  globalIdleModes.forEach(file => {
+    const option = document.createElement('option');
+    option.text = file.match(/(.*)\.js$/)[1];
+    option.value = file.match(/(.*)\.js$/)[1];
+    idleModeSelect.add(option);
+  });
+  globalActiveModes.forEach(file => {
+    const option = document.createElement('option');
+    option.text = file.match(/(.*)\.js$/)[1];
+    option.value = file.match(/(.*)\.js$/)[1];
+    activeModeSelect.add(option);
+  });
+
   // copy the globalSettings by value
   localSettings = Object.assign({}, globalSettings);
 

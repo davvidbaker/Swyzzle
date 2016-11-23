@@ -1,19 +1,26 @@
-const electron = require('electron')
+// electron module
+const electron = require('electron');
 // Module to control application life.
 const app = electron.app
 // Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow  
+const BrowserWindow = electron.BrowserWindow
+const ipcMain = electron.ipcMain;
+const Tray = electron.Tray;
+const Menu = electron.Menu;
 
-
-console.log('electron version', process.versions.electron)
-console.log('electron architecture', process.arch)
-const {ipcMain} = require('electron');
+// other modules
 const fs = require('fs'); // fs used for user settings  
 const path = require('path');
 const url = require('url');
 const robot = require('robotjs');
-const menu = require('./menu.js');
- 
+
+// my modules
+const {menu, preferencesWindow, openPreferences} = require('./menu.js');
+const song = require('./HereIGoAgain.js');
+
+let tray = null;
+app.dock.setIcon(path.join(__dirname, 'images/trayIconSpread512.png'));
+
 const defaultSettings = {
   startTimeout: 1,
   timeoutUnit: 's', // can be s or m or h
@@ -26,7 +33,7 @@ const defaultSettings = {
 }
 
 const windows = new Map();
-const readSettings = function() {
+const readSettings = function () {
   const file = `${app.getPath('userData')}/userSettings.json`;
   return new Promise((resolve, reject) => {
     fs.readFile(file, 'utf8', (err, data) => {
@@ -48,13 +55,13 @@ const readSettings = function() {
 }
 
 ipcMain.on('preview idle', (event, previewSettings) => {
-   if (windows.has('swyzzleWindow')) {
+  if (windows.has('swyzzleWindow')) {
     windows.get('swyzzleWindow').close();
   }
   createSwyzzleWindow('idle', previewSettings);
 });
 ipcMain.on('preview active', (event, previewSettings) => {
-   if (windows.has('swyzzleWindow')) {
+  if (windows.has('swyzzleWindow')) {
     windows.get('swyzzleWindow').close();
   }
   createSwyzzleWindow('active', previewSettings);
@@ -68,25 +75,53 @@ ipcMain.on('program error', (event, arg) => {
 });
 
 ipcMain.on('save settings', (event, arg) => {
-  global.settings = arg;
-   // set the app to open/not open on login (only supported on macOS)
+  saveSettings(arg);
+});
+
+function saveSettings(settings = global.settings, resetWindows = true) {
+  global.settings = settings;
+  // set the app to open/not open on login (only supported on macOS) (and very slowwwww -- seems to block the rest of the app)
   // app.setLoginItemSettings({
   //   openAtLogin: global.settings.openAtLogin
   // });
 
   // save the settings to disk
-  fs.writeFile(`${app.getPath('userData')}/userSettings.json`, JSON.stringify(global.settings), err => {
+  fs.writeFile(`${app.getPath('userData')}/userSettings.json`, JSON.stringify(settings), err => {
     if (err) throw err;
   });
 
-  if (windows.has('swyzzleWindow')) {
-    windows.get('swyzzleWindow').close();
-  }
+  if (resetWindows) {
+    if (windows.has('swyzzleWindow')) {
+      windows.get('swyzzleWindow').close();
+    }
 
-  if (global.settings.activeMode !== 'none') initActive();
-  resetIdleTimeout();
+    resetIdleTimeout();
+    if (global.settings.activeMode !== 'none') initActive();
+  }
   console.log('new global settings', global.settings);
-});
+}
+
+// Get arrays of all the active and idle idle shaders by looing in the filesystem
+const idleModes = function() {
+  return new Promise((resolve, reject) => {
+    fs.readdir(path.join(__dirname, '/shaders/idle'), (err, files) => {
+      if (err) { console.error(err); reject(err); }
+      global.idleModes = files;
+      resolve(files);
+    });
+  })
+};
+console.log(global.idleModes);
+const activeModes = function() {
+  return new Promise((resolve, reject) => {
+    fs.readdir(path.join(__dirname, '/shaders/active'), (err, files) => {
+      if (err) { console.error(err); reject(err); }
+      global.activeModes = files;
+      resolve(files);
+    });
+  })
+};
+
 
 let cursorInterval;
 /**
@@ -154,7 +189,7 @@ function createSwyzzleWindow(swyzzleType, settings = global.settings) {
   let cursorPos, cursorColor, cursorRGB;
 
   if (cursorInterval) clearInterval(cursorInterval);
-  cursorInterval = setInterval(() => {   
+  cursorInterval = setInterval(() => {
     var mouse = electron.screen.getCursorScreenPoint();
     cursorPos = mouse;
     if ((cursorPos.x >= activeDisplay.workArea.x && cursorPos.y >= activeDisplay.workArea.y) &&
@@ -173,20 +208,20 @@ function createSwyzzleWindow(swyzzleType, settings = global.settings) {
 
   // gracefully show the main window
   windows.get('swyzzleWindow').once('ready-to-show', () => {
-    windows.get('swyzzleWindow').show();
+    if (windows.has('swyzzleWindow')) windows.get('swyzzleWindow').show();
   });
 
   // Emitted when the window is closed.
   windows.get('swyzzleWindow').on('closed', function () {
     // Dereference the window object
-    windows.delete('swyzzleWindow'); 
+    windows.delete('swyzzleWindow');
 
     if (screenCaptureTimeout) clearTimeout(screenCaptureTimeout);
-    console.log('closed the main window of type', swyzzleType)
+    console.log('closed the main window of type', swyzzleType);
 
     // if the window that just closed was the idle window, initiate active, if it exists
     if (global.settings.activeMode !== 'none' && swyzzleType === 'idle') initActive();
-    
+
     // startWaitingForIdle();
   })
 }
@@ -194,7 +229,7 @@ function createSwyzzleWindow(swyzzleType, settings = global.settings) {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-const appReady = function() {
+const appReady = function () {
   return new Promise((resolve, reject) => {
     app.on('ready', () => {
       resolve();
@@ -202,13 +237,121 @@ const appReady = function() {
   })
 }
 
-Promise.all([appReady(), readSettings()]).then(values => {
+let activeModesMenu, idleModesMenu; // for use in the tray
+Promise.all([appReady(), readSettings(), idleModes(), activeModes()]).then(values => {
   global.settings = values[1];
 
+  // cut off the .js from idleModes and activeModes arrays of file names
+  for (let i = 2; i <= 3; i++) {
+    values[i] = values[i].map(file => file.match(/(.*)\.js$/)[1] );
+    values[i].unshift('none');
+  }
+  idleModesMenu = values[2].map(mode => ({
+    label: mode, 
+    type: 'radio', 
+    checked: global.settings.idleMode == mode ? true : false,
+    click: mode => {
+      global.settings.idleMode = mode.label;
+      saveSettings(global.settings, false);
+    }
+  }))
+  activeModesMenu = values[3].map(mode => ({
+    label: mode, 
+    type: 'radio',
+    checked: global.settings.activeMode == mode ? true : false,
+    click: mode => {
+      // if the active mode didn't change, we dont want to reset the window
+      const boo = global.settings.activeMode !== mode.label;
+      global.settings.activeMode = mode.label;
+      saveSettings(global.settings, boo);
+    }
+}))
+  
+
+  createTray();
   electron.Menu.setApplicationMenu(menu);
   if (global.settings.activeMode !== 'none') initActive();
   startWaitingForIdle();
 });
+
+
+let iteration = 0;
+const nestSubmenus = (mySubmenus) => {
+  if (iteration > song.length) return mySubmenus;
+  iteration+=2;
+  return (
+    [{ label: song[iteration] },
+    { type: 'separator' },
+    {
+      label: song[iteration+1],
+      submenu: nestSubmenus(mySubmenus)
+    },
+    ]
+  )
+}
+
+let lotsaSubmenus = [];
+lotsaSubmenus = nestSubmenus(lotsaSubmenus);
+
+function createTray() {
+  tray = new Tray(path.join(__dirname, 'images/trayIconSpread.png'));
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Quit Swyzzle', role: 'quit' },
+    { role: 'close' },
+    { label: 'Active Swyzzle', submenu: activeModesMenu},
+    { label: 'Idle Swyzzle', submenu: idleModesMenu},
+    {
+      label: 'Preferences...',
+      click: openPreferences
+    },
+    {
+      label: 'I wonder',
+      submenu: [{
+        label: "what's",
+        submenu: [{
+          label: 'in here?',
+          submenu: [{
+            label: "Was that a question?",
+            submenu: [{
+              label: "I think you know what's down this road.",
+              submenu: [
+                { label: "Goin down", click: openYoutube },
+                { label: "the only road", click: openYoutube },
+                { label: "I've ever known.", click: openYoutube },
+                { type: 'separator' },
+                {
+                  label: 'If...',
+                  submenu: [
+                    {
+                      label: "you've already been down that road",
+                      submenu: [
+                        {
+                          label: "and instead of immediately playing the song it opened to a commercial",
+                          submenu: [
+                            { label: "that's really unfortunate." },
+                            { type: 'separator' },
+                            {
+                              label: "Let's see how deep we can nest these submenus.", submenu: lotsaSubmenus
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+            }],
+          }, {
+            type: 'separator'
+          },
+          ]
+        }]
+      }]
+    }
+  ]);
+  tray.setContextMenu(contextMenu);
+  tray.setToolTip('Swyzzle Fo Shyzzle');
+}
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -219,6 +362,7 @@ app.on('window-all-closed', function () {
   // }
 })
 
+
 app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
@@ -226,15 +370,21 @@ app.on('activate', function () {
     if (global.settings.activeMode !== 'none') initActive();
     // startWaitingForIdle();
   }
-})
+});
+
+function openYoutube() {
+  const win = new BrowserWindow({ width: 800, height: 600 });
+  win.loadURL('https://youtu.be/i3MXiTeH_Pg?t=1m17s');
+}
+
 
 // get the cursor position every 100ms and check if it has moved.
 // this is a hacky way to go about getting system idle timeout
 // TODO better method of getting idle time
 function startWaitingForIdle() {
-  let lastMouse = {x: 0, y: 0};
+  let lastMouse = { x: 0, y: 0 };
 
-   setInterval(() => {   
+  setInterval(() => {
     var mouse = electron.screen.getCursorScreenPoint();
     // if you moved the mouse reset the countdown
     if (lastMouse.x !== mouse.x || lastMouse.y !== mouse.y) {

@@ -11,10 +11,9 @@ const remote = require('electron').remote;
 const robot = require('robotjs');
 const path = require('path');
 
-const settings = remote.getCurrentWindow().settings;
-const swyzzleType = remote.getCurrentWindow().swyzzleType;
-console.log(settings)
-console.log(swyzzleType)
+const swyzzleWindow = remote.getCurrentWindow();
+const settings = swyzzleWindow.settings;
+const swyzzleType = swyzzleWindow.swyzzleType;
 /* =========================================================
     CHOOSE WHICH SHADERS TO USE BASED ON GLOBAL SETTINGS
  ========================================================= */
@@ -60,6 +59,8 @@ ipc.on('screen', function (event, screenCapture) {
 
 
 function init() {
+  addEventListeners();
+
   /* =========================================================
   COMMUNICATION w/ MAIN PROCESS -- receiving mouse posiiton
   ========================================================= */
@@ -292,5 +293,18 @@ function init() {
       ipc.send('program error', gl.getProgramInfoLog(program));
       gl.deleteProgram(program);
     }
+  }
+}
+
+function addEventListeners() {
+  if (settings.clickToCloseIdle && swyzzleType === 'idle') {
+    document.addEventListener('click', () => {
+      swyzzleWindow.close();
+    });
+  }
+  if (settings.pressAnyKeyToCloseIdle && swyzzleType === 'idle') {
+    document.addEventListener('keydown', () => {
+      swyzzleWindow.close();
+    });
   }
 }

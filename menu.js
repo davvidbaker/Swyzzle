@@ -45,8 +45,8 @@ function openPreferences() {
   if (preferencesWindow == null) {
     preferencesWindow = new BrowserWindow({
       show: false,
-      width: 500,
-      height: 500,
+      width: 387,
+      height: 360,
       x: 100,
       y: 100,
     });

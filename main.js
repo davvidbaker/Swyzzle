@@ -27,6 +27,8 @@ const defaultSettings = {
   startTimeoutMS: 1000,
   alwaysOnTop: false,
   clickThrough: false,
+  clickToCloseIdle: true,
+  pressAnyKeyToCloseIdle: true,
   openAtLogin: false,
   idleMode: 'og',
   activeMode: 'none',
@@ -79,11 +81,13 @@ ipcMain.on('save settings', (event, arg) => {
 });
 
 function saveSettings(settings = global.settings, resetWindows = true) {
+  // set the app to open/not open on login (only supported on macOS) (and very slowwwww -- seems to block the rest of the app) so we only call this if it actually changed
+  if (settings.openAtLogin !== global.settings.openAtLogin) {
+    app.setLoginItemSettings({
+      openAtLogin: global.settings.openAtLogin
+    });
+  }
   global.settings = settings;
-  // set the app to open/not open on login (only supported on macOS) (and very slowwwww -- seems to block the rest of the app)
-  // app.setLoginItemSettings({
-  //   openAtLogin: global.settings.openAtLogin
-  // });
 
   // save the settings to disk
   fs.writeFile(`${app.getPath('userData')}/userSettings.json`, JSON.stringify(settings), err => {
@@ -298,8 +302,15 @@ function createTray() {
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Quit Swyzzle', role: 'quit' },
     { role: 'close' },
+    { type: 'separator' },
     { label: 'Active Swyzzle', submenu: activeModesMenu},
+    { type: 'separator' },
     { label: 'Idle Swyzzle', submenu: idleModesMenu},
+    { label: 'Preview Idle Swyzzle', click: () => {
+      createSwyzzleWindow('idle', global.settings);
+    } },
+    { type: 'separator' },
+
     {
       label: 'Preferences...',
       click: openPreferences

@@ -70,23 +70,17 @@ const vertexShader = `
     vec2 uCursor2 = vec2(uCursor.x*uAspect, uCursor.y);
     
     float dist = distance(uvForMouse, uCursor2);
-    vec2 velocity =  0.0001*uCursorVelocity/pow(dist,2.0);
+    vec2 speedUV = vUV + 0.0001*uCursorVelocity/pow(dist,2.0);
 
-    vec4 texel = texture2D(uImage, vUV);
-    
-    vec4 texelr = texture2D(uImage, (noise(vUV*100.0001)-0.5)*0.001 + vUV + velocity);
-    vec4 texelg = texture2D(uImage, (noise(vUV*100.0001)-0.5)*0.0011 + vUV + velocity*1.2);
-    vec4 texelb = texture2D(uImage, (noise(vUV*100.0001)-0.5)*0.0012 + vUV + velocity*1.1);
-    vec4 texel2 = vec4(texelr.r, texelg.g, texelb.b, 1.0);
-    // texel2.rgb = vec3(texelr.r,texelg.g,texelb.b);//texelr.rgb+texelb.rgb+texelg.rgb;
+    vec4 texel = texture2D(uImage, speedUV);
+    vec4 texel2  = texture2D(uImage, fract(vUV*0.999 + 0.001*noise(vUV)));
 
     vec2 transformedUV = vUV;
     // transformedUV.x += length(texel.rgb)*noiseOverTime(vUV)*sin(uTime)*pixel.x;
     // transformedUV.y += length(texel.rgb)*noiseOverTime(vUV)*sin(uTime/3.1414)*pixel.y;
     // texel = mix(texture2D(uImage,speedTexel) , texture2D(uImage, transformedUV), 0.5);
 
-
-    gl_FragColor = mix(texel,texel2,0.95);
+    gl_FragColor = mix(texel,texel2,0.3);
     }
   `
 

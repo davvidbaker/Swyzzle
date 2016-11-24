@@ -1,24 +1,33 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Preferences</title>
-  </head>
-  <body>
-    <style>
-    @font-face {
-      font-family: 'Lato';
-      src: url('./../fonts/Lato/Lato-Regular.ttf');
-    }
+
+<head>
+  <meta charset="UTF-8">
+  <title>Preferences</title>
+</head>
+
+<body>
+  <style>
+    /* gray bg #ececec */
+    /* gray bg #e4e4e4 */
+    /* separator #d3d3d3 */
+    /* font color #525252 */
+    
     body {
       /*background: rgba(0,0,0,0.5);*/
-      background: #333;
-      font-family: 'Lato';
+      background: #ececec;
+      font-family: sans-serif;
       margin: 0;
       padding: 0;
-      color: white;
-      padding: 10px;
+      color: #222;
+      font-size: 14px;
+      ;
     }
+    
+    button {
+      font-size: 13px;
+    }
+    
     ul {
       margin: 0;
       padding: 0;
@@ -28,61 +37,105 @@
       height: 100%;
       /*justify-content: space-around;*/
     }
-    li {
+    
+    .container li {
       margin-bottom: 10px;
+      padding-left: 10px;
+      padding-right: 10px;
     }
-    #time{
+    
+    #time {
       width: 30px;
       text-align: center;
     }
-    </style>
-    <ul>
-      <li>
-        MAKE IT MORE OBVIOUS THAT THESE SETTINGS ONLY APPLY TO IDLE SWYZZLE, THE ACTIVE IS ALWAYS on top and invisible to mouse events
-        <label for="time">Start idle Swyzzle after</label>
-        <input id="time" type="number" name="delay" value="5">
-        <select id="unit"> 
+    
+    .swyzzle {
+      width: 100%;
+    }
+    
+    #active {
+      background: #e4e4e4;
+      border-top: 1px solid #d3d3d3;
+      border-bottom: 1px solid #d3d3d3;
+      padding-bottom: 5px;
+    }
+    #idle {
+      margin-bottom: 0;
+    }
+    #save-container {
+      padding-top: 10px;
+      padding-bottom: 10px;
+      background: #e4e4e4;
+      border-top: 1px solid #d3d3d3;
+      margin: 0;
+    }
+    #save {
+      width: 100%;
+    }
+    #open-login-container {
+      margin: 10px;
+      margin-bottom: 15px;
+    }
+  </style>
+  <ul class="container">
+    <li class="swyzzle" id="idle">
+      <ul>
+        <li>
+          <label for="idle-mode"><strong>Idle Swyzzle</strong></label>
+          <select id="idle-mode"> 
+              <option value="none">none</option>          
+              <!-- the options are auto populated in the preferences.js script -->
+            </select>
+            <button id="preview-idle">Preview</button>
+        </li>
+        <li>
+          <label for="time">Start after</label>
+          <input id="time" type="number" name="delay" value="5">
+          <select id="unit"> 
           <option value="s" selected>seconds</option>
           <option value="m">minutes</option>
           <option value="h">hours</option>
         </select> of not moving your mouse
+        </li>
+        <li>
+          <label for="on-top"><input name="on-top" type="checkbox" id="on-top">Always on top</label>
+        </li>
+        <li>
+          <input name="invisible" type="checkbox" id="invisible"><label for="invisible">Invisible to mouse clicks</label>
+        </li>
+        <li>
+          <input name="click-to-close" type="checkbox" id="click-to-close"><label for="click-to-close">Click anywhere to close</label>
+        </li>
+        <li>
+          <input name="key-to-close" type="checkbox" id="key-to-close"><label for="key-to-close">Press any key to close</label>
+        </li>
+      </ul>
+    </li>
+      <li class="swyzzle" id="active">
+        <ul>
+          <li>
+            <label for="active-mode"><strong>Active Swyzzle</strong></label>
+            <select id="active-mode"> 
+                <option value="none">none</option>
+                <!-- the options are auto populated in the preferences.js script -->
+              </select>
+            <button id="preview-active">Preview</button>
+          </li>
+        </ul>
       </li>
-      <li>
-        <label for="on-top"><input name="on-top" type="checkbox" id="on-top">Always on top</label>
-      </li>
-      <li>
-        <input name="invisible" type="checkbox" id="invisible"><label for="invisible">Invisible to mouse clicks</label>
-      </li>
-      <li>
-        <input name="open-login" type="checkbox" id="open-login"><label for="open-login">Open Swyzzle when you log in</label>
-      </li>
-      <br>
-      <li>
-        <label for="time">Idle Swyzzle</label>
-        <select id="idle-mode"> 
-          <option value="none">none</option>          
-          <!-- the options are auto populated in the preferences.js script -->
-        </select>
-      </li>
-      <li>
-        <label for="time">Active Swyzzle</label>
-        <select id="active-mode"> 
-          <option value="none">none</option>
-          <!-- the options are auto populated in the preferences.js script -->
-        </select>
-      </li>
-      <li>  
-        <button id="preview-idle">Preview Idle</button>
-        <button id="preview-active">Preview Active</button>
-      </li>
-      <br>
-      <br>      
+    <li id="open-login-container">
+          <input name="open-login" type="checkbox" id="open-login" ><label for="open-login">Open Swyzzle when you log in</label>
+        </li>
+      
+    <li id="save-container">
       <button id="save">Apply and Save</button>
-    </ul>
-    
+    </li>
+  </ul>
 
-    <script>
+
+  <script>
     // You can also require other files to run in this process
     require('./preferences.js');
   </script>
+
 </html>

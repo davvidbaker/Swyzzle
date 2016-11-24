@@ -14,38 +14,18 @@ const previewIdleBtn =  document.getElementById('preview-idle');
 const previewActiveBtn =  document.getElementById('preview-active');
 const onTopCheckbox  = document.getElementById('on-top');
 const invisibleCheckbox  = document.getElementById('invisible');
+const clickCloseCheckbox = document.getElementById('click-to-close');
+const keyCloseCheckbox = document.getElementById('key-to-close');
 const idleModeSelect = document.getElementById('idle-mode');
 const activeModeSelect = document.getElementById('active-mode');
 const openLoginCheckbox  = document.getElementById('open-login');
 
 let localSettings;
 
-// populate the swyzzle active and idle mode options by browsing the shaders directory
-// const readIdlePromise = function() {
-//   return new Promise((resolve, reject) => {
-//     fs.readdir(path.join(__dirname, '../shaders/idle'), (err, files) => {
-//       if (err) { console.error(err); reject(err); }
-      
-//       console.log('resolving readIdlePromise');
-//       resolve();
-//     });
-//   })
-// };
-// const readActivePromise = function() {
-//   return new Promise((resolve, reject) => {
-//     fs.readdir(path.join(__dirname, '../shaders/active'), (err, files) => {
-//       if (err) { console.error(err); reject(err); }
-      
-//       console.log('resolving readActivePromise');
-//       resolve();
-//     });
-//   })
-// };
 initializeSettings()
 // populate the preferences with the user's prefs
 function initializeSettings() {
   // populate the swyzzle active and idle mode options
-  console.log('gim',globalIdleModes)
   globalIdleModes.forEach(file => {
     const option = document.createElement('option');
     option.text = file.match(/(.*)\.js$/)[1];
@@ -66,9 +46,15 @@ function initializeSettings() {
   unitSelect.value = localSettings.timeoutUnit;
   onTopCheckbox.checked = localSettings.alwaysOnTop;
   invisibleCheckbox.checked = localSettings.clickThrough;
-  openLoginCheckbox.checked = localSettings.clickThrough;
+  openLoginCheckbox.checked = localSettings.openAtLogin;
+  clickCloseCheckbox.checked = localSettings.clickToCloseIdle;
+  keyCloseCheckbox.checked = localSettings.pressAnyKeyToCloseIdle;
   idleModeSelect.value = localSettings.idleMode;
   activeModeSelect.value = localSettings.activeMode;
+
+  if (localSettings.clickThrough) {
+    clickCloseCheckbox.disabled = false;
+  }
 };
 
 timeInput.oninput = (evt) => { localSettings.startTimeout = evt.target.value; }
@@ -78,8 +64,19 @@ idleModeSelect.oninput = (evt) => { localSettings.idleMode = evt.target.value; }
 activeModeSelect.oninput = (evt) => { localSettings.activeMode = evt.target.value; }
 
 onTopCheckbox.onchange = (evt) => { localSettings.alwaysOnTop = evt.target.checked }
-invisibleCheckbox.onchange = (evt) => { localSettings.clickThrough = evt.target.checked }
+invisibleCheckbox.onchange = (evt) => { 
+  localSettings.clickThrough = evt.target.checked;
+  if (localSettings.clickThrough) {
 
+    clickCloseCheckbox.checked = false;
+    localSettings.clickToCloseIdle = false;
+    clickCloseCheckbox.disabled = true;
+  } else {
+    clickCloseCheckbox.disabled = false;
+  }
+}
+keyCloseCheckbox.onchange = (evt) => { localSettings.pressAnyKeyToCloseIdle = evt.target.checked }
+clickCloseCheckbox.onchange = (evt) => { localSettings.clickToCloseIdle = evt.target.checked }
 openLoginCheckbox.onchange = (evt) => { localSettings.openAtLogin = evt.target.checked }
 
 

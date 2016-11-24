@@ -4,7 +4,8 @@
   "description": "A fun way to visualize your actions on the computer throughout the day.",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "buildMac": "electron-packager . Swyzzle --overwrite --icon='./images/icons.icns' "
   },
   "repository": "https://github.com/brainsandspace/swyzzle",
   "keywords": [

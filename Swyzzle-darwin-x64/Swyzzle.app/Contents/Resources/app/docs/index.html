@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Swyzzle</title>
+<link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet">
+  </head>
+  <body>
+    <style>
+    body {
+      background: #fcbe1f;
+      margin: 0;
+      padding: 0;
+      font-family: 'Lato', sans-serif;
+    }
+    .info {
+      background: #eee;
+      position: absolute;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      top: 100vh;
+      width: 100vw;
+      height: 50vh;
+      z-index: 2;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .item {
+      border: 1px solid #777;
+      background: #eee;
+      padding: 20px;
+      text-align: center;
+    }
+    .item:hover {
+      background: #ddd;
+    }
+    .item:active {
+      background: #777;
+    }
+    .buttons {
+      background: #ddd;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+      list-style: none;
+      height: 100%;
+      padding: 0px 10px;
+    }
+    .os {
+      font-style: italic;
+      font-size: 0.8rem;
+      color: #333;
+    }
+    #beta {
+      position: fixed;
+      top: 20px;
+      right: -110px;
+      width: 300px;
+      transform: rotate(35deg);
+      background: black;
+      color: white;
+      z-index: 3;
+      text-align: center;
+      font-family: monospace;
+    }
+    .bold {
+      font-weight: 700;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+    }
+    .description {
+      height: 100%;
+      background: #eee;
+      /*padding: 10px;*/
+      /*max-width: 60vw;*/
+      max-height: 50vh;
+      overflow: scroll;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-around;
+    }
+    p {
+      padding: 10px;
+    }
+    </style> 
+    <div id="beta">
+      BETA
+    </div>
+    <ul class="info">
+      <li class="description">
+        <p>
+          Swyzzle is a desktop app that melts your screen (and possibly your GPU). Original inspiration came from <a class="bold" href="http://iographica.com/">IOGraphica</a> and then I was all like, what if I could make my desktop melt?? o.O There is no purpose to Swizzle—besides pure entertainment.
+          <br>
+          <br>
+          Swyzzle is like a screensaver in that it kicks in after letting your computer idle for some time. You can open the preferences with the shortcut <span class="bold">⌘,</span> where you can then configure the timeout and customize the swyzzling mode.
+          <br>
+          <br>
+          If you're a fan, tell your friends about it. I guess if you are a huge fan and wanted to like give me money you could <a class="bold" href="https://venmo.com/dbakes">venmo me</a> a dollar or something.
+        </p>
+      </li>
+      <ul class="buttons">
+        <a href="https://github.com/brainsandspace/Swyzzle/releases/download/v0.0.0/swyzzle.zip" download>
+          <li class="item download">
+            Download the Desktop App<br><span class="os">OS X</span>
+          </li>
+        </a>
+        <a href="https://github.com/brainsandspace/Swyzzle">
+          <li class="item download">
+            Check Out the Source Code
+          </li>
+        </a>
+      </ul>
+      
+    </ul>
+    <script src="./page.js"></script>
+</html>

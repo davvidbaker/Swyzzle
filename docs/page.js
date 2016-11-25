@@ -116,7 +116,7 @@ const vertexShaderSource = `
   `
 
 const logo = new Image();
-logo.src = './swyzzleLogo.png';
+logo.src = './SwyzzleLogo2.png';
 logo.onload = init;
 
 function init() {

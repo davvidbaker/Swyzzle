@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "buildMac": "electron-packager . Swyzzle --overwrite --icon='./images/icons.icns' ",
-    "test": "mocha test/ --reporter nyan --compilers js:babel-core/register"
+    "test": "./node_modules/.bin/mocha test/ --reporter nyan --compilers js:babel-core/register"
   },
   "repository": "https://github.com/brainsandspace/swyzzle",
   "keywords": [

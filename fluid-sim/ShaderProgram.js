@@ -10,12 +10,11 @@ class ShaderProgram {
    * @param {any} fragmentShaderSrc The GLSL code for fragment shader.
    * @param {any} attributes Array of attribute strings.
    * @param {any} uniforms Array of uniform strings.
-   * @param {any} numTextures Number of textures to create.
    * @param {any} screenImage ImageData
    * 
    * @memberOf ShaderProgram
    */
-  constructor(gl, vertexShaderSrc, fragmentShaderSrc, attributes, uniforms, numTextures, screenImage, screenWidth, screenHeight) {
+  constructor(gl, vertexShaderSrc, fragmentShaderSrc, attributes, uniforms, screenWidth, screenHeight) {
     // if (arguments.length !== 9) {
     //   throw new Error('ShaderProgram takes 9 arguments');
     // }
@@ -29,23 +28,6 @@ class ShaderProgram {
     this.uniforms = this._getUniformLocations(gl, this.program, uniforms);
 
     this.attributeBuffers = this._createAttributeBuffers(gl, attributes, screenWidth, screenHeight);
-    console.log('this.attributeBuffers', this.attributeBuffers)
-    this.textures = [];
-    this.framebuffers = [];
-    for (let i = 0; i < numTextures; i++) {
-      const texture = this._createAndSetupTexture(gl);
-      this.textures.push(texture);
-
-      // specify 2 dimensional texture image
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, screenImage);
-
-      // create a framebuffer...
-      const fbo = gl.createFramebuffer();
-      this.framebuffers.push(fbo);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-      // ... and attach a texture to it
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-    }
   }
 
   _createShader(gl, type, glslCode) {
@@ -86,7 +68,6 @@ class ShaderProgram {
     uniforms.forEach(uni => {
       locations[uni] = gl.getUniformLocation(program, uni);
     });
-    console.log('uniforms', locations)
     return locations;
   }
 
@@ -120,23 +101,6 @@ class ShaderProgram {
     return buffers;
   }
 
-  /* function for creating and setting up a texture */
-  _createAndSetupTexture(gl) {
-    // texture is object to which images can be bound to
-    const texture = gl.createTexture();
-
-    // bind given WebGL Texture to a binding point (target)
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-
-    // set up texture so we can render any size image and so we are working in pixels
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-    return texture;
-  }
-
   /**
    * Sets float uniforms (and booleans, which can be set as floats)
    * 
@@ -146,7 +110,6 @@ class ShaderProgram {
    * @memberOf ShaderProgram
    */
   setUniform(uniform, ...values) {
-    if (uniform == 'uColor') console.log(uniform, values, this.uniforms)
     if (this.uniforms[uniform] == null) {
       throw new Error(`uniform ${uniform} is not defined for this program`);
     }
@@ -171,6 +134,7 @@ class ShaderProgram {
   }
 
   /* take data from the buffer we set up above and supply it to the attribute in the shader */
+  /* NB: Our vertex shader used to be expecting aPosition to be a vec4 (but then we changed it vec2). We set size = 2, so this attribute will get its first 2 values from our buffer. Attributes default to 0,0,0,1, so the last two components will be 0, 1.*/
   supplyAttribute(attr) {
     this.gl.enableVertexAttribArray(this.attributes[attr]);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.attributeBuffers[attr]);

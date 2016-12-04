@@ -7,11 +7,13 @@ const vertexShader = `
   attribute vec2 aPosition;
 
   varying vec2 vUV;
+  varying vec2 vTexCoord;
 
   void main() {
     // pixels to clip-space
     // convert position from pixels to 0 -> 1
     vec2 zeroToOne = aPosition / uResolution;
+    vTexCoord = zeroToOne;
 
     // convert form 0 -> 1 to 0 -> 2
     vec2 zeroToTwo = zeroToOne * 2.0;

@@ -1,9 +1,9 @@
 // electron module
 const electron = require('electron');
 // Module to control application life.
-const app = electron.app
+const app = electron.app;
 // Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow
+const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
 const Tray = electron.Tray;
 const Menu = electron.Menu;
@@ -33,7 +33,7 @@ const defaultSettings = {
   idleMode: 'og',
   activeMode: 'none',
   showDockIcon: false,
-}
+};
 
 const windows = new Map();
 const readSettings = function () {
@@ -55,7 +55,7 @@ const readSettings = function () {
       }
     });
   });
-}
+};
 
 ipcMain.on('preview idle', (event, previewSettings) => {
   if (windows.has('swyzzleWindow')) {
@@ -71,10 +71,10 @@ ipcMain.on('preview active', (event, previewSettings) => {
 });
 
 ipcMain.on('shader error', (event, arg) => {
-  console.log('shader error', arg)
+  console.log('shader error', arg);
 });
 ipcMain.on('program error', (event, arg) => {
-  console.log('program error', arg)
+  console.log('program error', arg);
 });
 
 ipcMain.on('save settings', (event, arg) => {
@@ -91,7 +91,7 @@ function saveSettings(settings = global.settings, resetWindows = true) {
   global.settings = settings;
 
   if (global.settings.showDockIcon) {
-    app.dock.show()
+    app.dock.show();
   } else {
     app.dock.hide();
   }
@@ -120,7 +120,7 @@ const idleModes = function() {
       global.idleModes = files;
       resolve(files);
     });
-  })
+  });
 };
 console.log(global.idleModes);
 const activeModes = function() {
@@ -130,7 +130,7 @@ const activeModes = function() {
       global.activeModes = files;
       resolve(files);
     });
-  })
+  });
 };
 
 
@@ -184,7 +184,7 @@ function createSwyzzleWindow(swyzzleType, settings = global.settings) {
     pathname: path.join(__dirname, 'index.html'),
     protocol: 'file:',
     slashes: true
-  }))
+  }));
 
   // capture the screen and send it after a timeout
   // on Macs, the window can't go all the way to the top because the menu panel bar up there
@@ -234,7 +234,7 @@ function createSwyzzleWindow(swyzzleType, settings = global.settings) {
     if (global.settings.activeMode !== 'none' && swyzzleType === 'idle') initActive();
 
     // startWaitingForIdle();
-  })
+  });
 }
 
 // This method will be called when Electron has finished
@@ -244,9 +244,9 @@ const appReady = function () {
   return new Promise((resolve, reject) => {
     app.on('ready', () => {
       resolve();
-    })
-  })
-}
+    });
+  });
+};
 
 let activeModesMenu, idleModesMenu; // for use in the tray
 Promise.all([appReady(), readSettings(), idleModes(), activeModes()]).then(values => {
@@ -266,7 +266,7 @@ Promise.all([appReady(), readSettings(), idleModes(), activeModes()]).then(value
       global.settings.idleMode = mode.label;
       saveSettings(global.settings, false);
     }
-  }))
+  }));
   activeModesMenu = values[3].map(mode => ({
     label: mode, 
     type: 'radio',
@@ -277,7 +277,7 @@ Promise.all([appReady(), readSettings(), idleModes(), activeModes()]).then(value
       global.settings.activeMode = mode.label;
       saveSettings(global.settings, boo);
     }
-}))
+}));
   
 
   createTray();
@@ -299,8 +299,8 @@ const nestSubmenus = (mySubmenus) => {
       submenu: nestSubmenus(mySubmenus)
     },
     ]
-  )
-}
+  );
+};
 
 let lotsaSubmenus = [];
 lotsaSubmenus = nestSubmenus(lotsaSubmenus);
@@ -379,7 +379,7 @@ app.on('window-all-closed', function () {
   // if (process.platform !== 'darwin') {
   //   app.quit()
   // }
-})
+});
 
 
 app.on('activate', function () {

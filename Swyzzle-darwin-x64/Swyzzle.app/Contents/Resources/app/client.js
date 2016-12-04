@@ -110,7 +110,7 @@ function init() {
 
   // look up the location (within the webgl program) of the attributes and uniforms
   const attributes = {
-    aPosPixelsLocation: gl.getAttribLocation(program, 'aPosPixels'),
+    aPositionLocation: gl.getAttribLocation(program, 'aPosition'),
     aTexCoordLocation: gl.getAttribLocation(program, 'aTexCoord')
   };
   const uniforms = {
@@ -124,9 +124,9 @@ function init() {
   };
 
   // attributes get their data from buffers, so we need to create a buffer...
-  const aPosPixelsBuffer = gl.createBuffer();
+  const aPositionBuffer = gl.createBuffer();
   // ...and bind it to the ARRAY_BUFFER binding point, which is for vertex attributes...
-  gl.bindBuffer(gl.ARRAY_BUFFER, aPosPixelsBuffer);
+  gl.bindBuffer(gl.ARRAY_BUFFER, aPositionBuffer);
   // ...and then add data by referencing it through the bind point
   const positions = [
     0, 0,
@@ -193,10 +193,10 @@ function init() {
 
   /* take data from the buffer we set up above and supply it to the attribute in the shader */
   // turn the attribute on at a given index position
-  gl.enableVertexAttribArray(attributes.aPosPixelsLocation);
+  gl.enableVertexAttribArray(attributes.aPositionLocation);
 
   // bind position buffer
-  gl.bindBuffer(gl.ARRAY_BUFFER, aPosPixelsBuffer);
+  gl.bindBuffer(gl.ARRAY_BUFFER, aPositionBuffer);
 
   // tell the attribute how to get data out of the buffer
   const size = 2;         // 2 components per iteration
@@ -206,7 +206,7 @@ function init() {
   const offset = 0;       // offset in bytes of the first component in the vertex attribute ARRAY_BUFFER
 
   // bind attribute to aPosBuffer, so that we're now free to bind something else to the ARRAY_BUFFER bind point. This attribute will continue to use positionBuffer.
-  gl.vertexAttribPointer(attributes.aPosPixelsLocation, size, type, normalize, stride, offset);
+  gl.vertexAttribPointer(attributes.aPositionLocation, size, type, normalize, stride, offset);
 
   /* NB: Our vertex shader used to be expecting aPos to be a vec4 (but then we changed it vec2). We set size = 2, so this attribute will get its first 2 values from our buffer. Attributes default to 0,0,0,1, so the last two components will be 0, 1.*/
 

@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "buildMac": "electron-packager . Swyzzle --overwrite --icon='./images/icons.icns' "
+    "buildMac": "electron-packager . Swyzzle --overwrite --icon='./images/icons.icns' ",
+    "test": "mocha test/ --reporter nyan --compilers js:babel-core/register"
   },
   "repository": "https://github.com/brainsandspace/swyzzle",
   "keywords": [
@@ -19,10 +20,15 @@
   "author": "David Baker",
   "license": "MIT",
   "devDependencies": {
+    "babel-core": "^6.18.2",
+    "babel-preset-es2015": "^6.18.0",
+    "chai": "^3.5.0",
     "electron": "^1.4.7",
     "electron-mocha": "^3.2.0",
     "electron-packager": "^8.3.0",
     "electron-rebuild": "^1.3.0",
+    "eslint": "^3.11.1",
+    "mocha": "^3.2.0",
     "xvfb-maybe": "^0.1.3"
   },
   "dependencies": {

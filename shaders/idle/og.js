@@ -1,10 +1,10 @@
-const vertexShader = `
+vertexShader = `
   precision mediump float;
 
   uniform vec2 uResolution;
   uniform bool uFlipY;
 
-  attribute vec2 aPosPixels;
+  attribute vec2 aPosition;
   attribute vec2 aTexCoord;
 
   varying vec2 vUV;
@@ -12,7 +12,7 @@ const vertexShader = `
   void main() {
     // pixels to clip-space
     // convert position from pixels to 0 -> 1
-    vec2 zeroToOne = aPosPixels / uResolution;
+    vec2 zeroToOne = aPosition / uResolution;
 
     // convert form 0 -> 1 to 0 -> 2
     vec2 zeroToTwo = zeroToOne * 2.0;
@@ -28,7 +28,7 @@ const vertexShader = `
     gl_Position = vec4(clipSpace, 0.0, 1.0);
   }
   `;
-  const fragmentShader = `
+fragmentShader = `
   precision highp float;
   const float seed = ${Math.random()};
 

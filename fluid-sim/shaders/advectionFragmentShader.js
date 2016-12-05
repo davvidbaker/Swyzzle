@@ -27,13 +27,13 @@ const fragmentShader = `
 
     float impulseRadius = 0.01;
     vec2 impulse = normalize(vTexCoord - uCursor) * 0.016 * exp(-(pow(vTexCoord.x - uCursor.x, 2.0) + pow(vTexCoord.y - uCursor.y, 2.0)) / impulseRadius);
-    impulse *= uCursorSpeed * 10.0;
+    impulse *= uCursorSpeed * 100.0;
     velocityField.xy += impulse * 100.0;
 
     vec2 previousPosition = vTexCoord -  0.5 * uDeltaTime * velocityField;
 
-    // gl_FragColor = mix(texture2D(uInputTexture, vTexCoord), texture2D(uInputTexture, previousPosition), 0.5);
-    gl_FragColor = texture2D(uInputTexture, previousPosition);
+    gl_FragColor = mix(texture2D(uInputTexture, vTexCoord), texture2D(uInputTexture, previousPosition), 0.99);
+    // gl_FragColor = texture2D(uInputTexture, previousPosition);
     // gl_FragColor += impulse;
 
     // if (distance(uCursor, vTexCoord) < 0.05) {

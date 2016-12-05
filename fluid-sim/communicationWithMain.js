@@ -36,25 +36,32 @@ const receiveScreenCapture = function (event, screenCapture, screenWidth, screen
 /* =========================================================
 COMMUNICATION w/ MAIN PROCESS -- receiving mouse posiiton
 ========================================================= */
-const receiveCursorPosition = function (event, cursor, oldMouse, screenWidth, screenHeight, timer, startTime, currentProgram) {
+const receiveCursorPosition = function (event, cursor, oldMouse, screenWidth, screenHeight, timer, startTime, shaderPrograms, currentProgram, gl) {
 
   const newMouse = [cursor.pos.x / screenWidth, cursor.pos.y / screenHeight];
+    // update mouse speed and...
+  mouseVelocity = [newMouse[0] - oldMouse[0], newMouse[1] - oldMouse[1]];
 
   // neeed to make sure these values are being updated even if the main window isn't open which prevents window.request animation frame from being called
   timer = Date.now() - startTime;
-
-  if ('uTime' in currentProgram.uniforms)
-    currentProgram.setUniform('uTime', timer);
-  if ('uCursor' in currentProgram.uniforms)
-    currentProgram.setUniform('uCursor', newMouse[0], newMouse[1]);
+  
+  for (shaderProgram in shaderPrograms) {
+    gl.useProgram(shaderPrograms[shaderProgram].program);
+    if ('uTime' in shaderPrograms[shaderProgram].uniforms)
+      shaderPrograms[shaderProgram].setUniform('uTime', timer);
+    if ('uCursor' in shaderPrograms[shaderProgram].uniforms) {
+      shaderPrograms[shaderProgram].setUniform('uCursor', newMouse[0], newMouse[1]);
+    }
+    if ('uCursorSpeed' in shaderPrograms[shaderProgram].uniforms) {
+      shaderPrograms[shaderProgram].setUniform('uCursorSpeed', Math.sqrt(Math.pow(mouseVelocity[0], 2) + Math.pow(mouseVelocity[1], 2)));
+      console.log(Math.sqrt(Math.pow(mouseVelocity[0], 2) + Math.pow(mouseVelocity[1], 2)));
+    }
+  }
+// console.log('received cursor position');
+  
   // TODO figure out why ucolor aint working
   // currentProgram.setUniform('uColor', cursor.color.r, cursor.color.g, cursor.color.b);
 
-
-  // update mouse speed and...
-  mouseVelocity = [newMouse[0] - oldMouse[0], newMouse[1] - oldMouse[1]];
-  if ('uCursorVelocity' in currentProgram.uniforms)
-    currentProgram.setUniform('uCursorVelocity', -mouseVelocity[0], -mouseVelocity[1]);
   // ...update old mouse position
   return [newMouse, timer];
 };

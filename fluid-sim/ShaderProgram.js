@@ -10,7 +10,6 @@ class ShaderProgram {
    * @param {any} fragmentShaderSrc The GLSL code for fragment shader.
    * @param {any} attributes Array of attribute strings.
    * @param {any} uniforms Array of uniform strings.
-   * @param {any} screenImage ImageData
    * 
    * @memberOf ShaderProgram
    */
@@ -68,6 +67,7 @@ class ShaderProgram {
     uniforms.forEach(uni => {
       locations[uni] = gl.getUniformLocation(program, uni);
     });
+    console.log(uniforms, locations);
     return locations;
   }
 
@@ -111,7 +111,8 @@ class ShaderProgram {
    */
   setUniform(uniform, ...values) {
     if (this.uniforms[uniform] == null) {
-      throw new Error(`uniform ${uniform} is not defined for this program`);
+      console.warn(`uniform ${uniform} is not defined for this program`);
+      return;
     }
 
     switch (typeof values[0]) {

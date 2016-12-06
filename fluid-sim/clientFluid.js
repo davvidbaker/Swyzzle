@@ -79,7 +79,7 @@ const shaderPrograms = {};
 function init(screenImage) {
 
     shaderPrograms['advectionProgram'] = new ShaderProgram(gl, basicVertexShaderSrc, advectionShaderSrc, ['aPosition'], 
-    ['uFlipY', 'uResolution', 'uCursor', 'uCursorSpeed', 'uFirstFrame', 'uDeltaTime', 'uInputTexture', 'uVelocity'], screenWidth, screenHeight);
+    ['uFlipY', 'uResolution', 'uCursor', 'uCursorSpeed', 'uFirstFrame', 'uDeltaTime', 'uInputTexture', 'uVelocity', 'uWritingToVelocity'], screenWidth, screenHeight);
 
     shaderPrograms['basicProgram'] = new ShaderProgram(gl, basicVertexShaderSrc, basicFragmentShaderSrc, ['aPosition'], 
     ['uFlipY', 'uResolution', 'uInputTexture'], screenWidth, screenHeight);
@@ -185,6 +185,7 @@ function init(screenImage) {
         lastTimestamp = timestamp;
         gl.uniform1i(currentProgram.uniforms.uInputTexture, 0); // texture unit 0
         gl.uniform1i(currentProgram.uniforms.uVelocity, 1); // texture unit 1
+        gl.uniform1i(currentProgram.uniforms.uWritingToVelocity, true);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, textures[`velocity0`]);
         gl.activeTexture(gl.TEXTURE1);
@@ -195,27 +196,29 @@ function init(screenImage) {
         currentProgram.setUniform('uFlipY', false);
 
         gl.drawArrays(primitiveType, first, count);
+        gl.uniform1i(currentProgram.uniforms.uWritingToVelocity, false);
+        
 
         textures.swap(`velocity0`, `velocity1`);
 /////////////
 // calculate the  the pressure, leaving result in textures.pressure0
-        // const JACOBI_ITERATIONS = 10;
-        // for (let i = 0; i < 10; i++) {
-        //   currentProgram = shaderPrograms.jacobiIterationProgram;
-        //   gl.useProgram(currentProgram.program);
+        const JACOBI_ITERATIONS = 0;
+        for (let i = 0; i < JACOBI_ITERATIONS; i++) {
+          currentProgram = shaderPrograms.jacobiIterationProgram;
+          gl.useProgram(currentProgram.program);
 
-        //   gl.uniform1i(currentProgram.uniforms.uPressure, 0);
-        //   gl.activeTexture(gl.TEXTURE0);
-        //   gl.bindTexture(gl.TEXTURE_2D, textures[`pressure0`]);
+          gl.uniform1i(currentProgram.uniforms.uPressure, 0);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D, textures[`pressure0`]);
 
-        //   setFramebuffer(framebuffers[`pressure1`], screenWidth, screenHeight);   
-        //   currentProgram.setUniform('uEpsilon', 1/screenWidth);
-        //   currentProgram.setUniform('uFlipY', false);
+          setFramebuffer(framebuffers[`pressure1`], screenWidth, screenHeight);   
+          currentProgram.setUniform('uEpsilon', 1/screenWidth);
+          currentProgram.setUniform('uFlipY', false);
 
-        //   gl.drawArrays(primitiveType, first, count);
+          gl.drawArrays(primitiveType, first, count);
 
-        //   textures.swap('pressure0', 'pressure1'); 
-        // }
+          textures.swap('pressure0', 'pressure1'); 
+        }
 ///////////
 // subtract pressure gradient from advected velocity texture, leaving result in textures.velocity0
         currentProgram = shaderPrograms.subtractPressureGradientProgram;
@@ -277,6 +280,7 @@ function init(screenImage) {
           // This is how you use multiple textures in a single shader program.
           gl.uniform1i(currentProgram.uniforms.uInputTexture, 0); // texture unit 0
           gl.uniform1i(currentProgram.uniforms.uVelocity, 1); // texture unit 1
+          gl.uniform1i(currentProgram.uniforms.uWritingToVelocity, false);
           gl.activeTexture(gl.TEXTURE0);
           gl.bindTexture(gl.TEXTURE_2D, textures[a]);
           gl.activeTexture(gl.TEXTURE1);

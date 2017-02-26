@@ -19,12 +19,19 @@ const {menu, preferencesWindow, openPreferences} = require('./menu.js');
 const song = require('./HereIGoAgain.js');
 
 let tray = null;
-app.dock.setIcon(path.join(__dirname, 'images/trayIconSpread512.png'));
+
+if (app.dock) {
+  app.dock.setIcon(path.join(__dirname, 'images/trayIconSpread512.png'));
+}
+
+console.log(`app.isUnityRunning()? ${app.isUnityRunning()}`)
+
+console.log(app);
 
 const defaultSettings = {
-  startTimeout: 1,
+  startTimeout: 0,
   timeoutUnit: 'm', // can be s or m or h
-  startTimeoutMS: 60000,
+  startTimeoutMS: 0,
   alwaysOnTop: false,
   clickThrough: false,
   clickToCloseIdle: true,
@@ -250,6 +257,9 @@ const appReady = function () {
 
 let activeModesMenu, idleModesMenu; // for use in the tray
 Promise.all([appReady(), readSettings(), idleModes(), activeModes()]).then(values => {
+  console.log('app ready sir.')
+  openPreferences();
+
   global.settings = values[1];
   if (!global.settings.showDockIcon) app.dock.hide();
 

@@ -1,4 +1,4 @@
-# [Swyzzle](https://brainsandspace.github.io/Swyzzle)
+# [Swyzzle](https://davvidbaker.github.io/Swyzzle)
 
 ## To Use
 
@@ -6,7 +6,7 @@ To clone and run this repository you'll need [Git](https://git-scm.com) and [Nod
 
 ```bash
 # Clone this repository
-git clone https://github.com/brainsandspace/Swyzzle.git
+git clone https://github.com/davvidbaker/Swyzzle.git
 # Go into the repository
 cd Swyzzle/src
 # Install dependencies

@@ -1,4 +1,4 @@
-# [Swyzzle](https://brainsandspace.github.io/Swyzzle) [![Build Status](https://travis-ci.org/brainsandspace/Swyzzle.svg?branch=master)](https://travis-ci.org/brainsandspace/Swyzzle)
+# [Swyzzle](https://brainsandspace.github.io/Swyzzle)
 
 ## To Use
 

@@ -10,4 +10,12 @@ app.use(express.static('packages'));
 app.get('/', (req, res) =>
   res.sendFile(path.join(__dirname, 'docs/index.html')),
 );
+
+app.get('/SwyzzleLogo2.png', (req, res) =>
+  res.sendFile(path.join(__dirname, 'docs/SwyzzleLogo2.png')),
+);
+app.get('/page.mjs', (req, res) =>
+  res.sendFile(path.join(__dirname, 'docs/page.mjs')),
+);
+
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

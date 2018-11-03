@@ -65,19 +65,6 @@
       color: #333;
     }
 
-    #beta {
-      position: fixed;
-      top: 20px;
-      right: -110px;
-      width: 300px;
-      transform: rotate(35deg);
-      background: black;
-      color: white;
-      z-index: 3;
-      text-align: center;
-      font-family: monospace;
-    }
-
     .bold {
       font-weight: 700;
     }
@@ -104,10 +91,13 @@
     p {
       padding: 10px;
     }
+
+    #swyzz {
+      max-width: 100vw;
+    }
   </style>
-  <div id="beta">
-    BETA
-  </div>
+  <img id="swyzz" src="./SwyzzleLogo2.png" alt="Swyzzle">
+
   <ul class="info">
     <li class="description">
       <h1>The screensaver revolution has begun.</h1>
@@ -138,7 +128,11 @@
     </ul>
 
   </ul>
-  <script type="module" src="core/index.mjs"></script>
-  <!-- <script src="./page.js"></script> -->
+  <script type="module">
+    import swyzzle from '/core/index.mjs';
+    const img = document.querySelector("#swyzz");
+
+    const cleanup = swyzzle(img);
+  </script>
 
 </html>

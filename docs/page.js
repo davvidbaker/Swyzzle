@@ -1,11 +1,11 @@
 // Most of this code is pulled straight from the electron app, so that's why some things may seem kind of off or roundabout.
 
-const canvasGL = document.createElement('canvas');
+const canvasGL = document.createElement("canvas");
 let windowHeight = window.innerHeight;
 let windowWidth = window.innerWidth;
 const startTime = Date.now();
 let timer = 0;
-let oldMouse = (newMouse = [0.5, 0.5]);
+let oldMouse = newMouse = [0.5, 0.5];
 let mouseVelocity = [0, 0];
 
 const vertexShaderSource = `
@@ -41,7 +41,7 @@ const vertexShaderSource = `
     gl_Position = vec4(clipSpace, 0.0, 1.0);
   }
   `;
-const fragmentShaderSource = `
+  const fragmentShaderSource = `
   precision highp float;
   const float seed = ${Math.random()};
 
@@ -113,74 +113,55 @@ const fragmentShaderSource = `
 
     gl_FragColor = mix(tex, texOff2, 0.01);
   }
-  `;
-console.log(`🔥  logo`);
+  `
 
 const logo = new Image();
-try {
-  logo.crossOrigin = '';
-  logo.src = './SwyzzleLogo2.png';
-  logo.onload = init;
-  logo.addEventListener('load', e => console.log(`🔥 load e`, e));
-  logo.addEventListener('loadstart', e => console.log(`🔥 loadstart e`, e));
-  logo.addEventListener('loadend', e => console.log(`🔥 loadend e`, e));
-} catch (e) {
-  console.log(`🔥  e`, e);
-}
-init();
+logo.src = './SwyzzleLogo2.png';
+logo.onload = init;
+
 function init() {
   document.addEventListener('mousemove', evt => {
     let cursor = {
-      pos: {
+      pos:  {
         x: evt.clientX,
-        y: evt.clientY,
-      },
-    };
+        y: evt.clientY
+      }
+    }
     newMouse = [cursor.pos.x / windowWidth, cursor.pos.y / windowHeight];
-    // uniforms.uMouse.value = new THREE.Vector2(arg.x/windowWidth, arg.y/windowHeight);//.x = evt.clientX/width;
+    // uniforms.uMouse.value = new THREE.Vector2(arg.x/windowWidth, arg.y/windowHeight);//.x = evt.clientX/width;  
 
     // neeed to make sure these values are being updated even if the main window isn't open which prevents window.request animation frame from being called
-    gl.uniform2f(uniforms.uCursor, newMouse[0], newMouse[1]);
+        gl.uniform2f(uniforms.uCursor, newMouse[0], newMouse[1]);
 
     // update mouse speed and...
-    mouseVelocity = [newMouse[0] - oldMouse[0], newMouse[1] - oldMouse[1]];
-    gl.uniform2f(
-      uniforms.uCursorVelocity,
-      -mouseVelocity[0],
-      -mouseVelocity[1],
-    );
+    mouseVelocity = [newMouse[0] - oldMouse[0], newMouse[1] - oldMouse[1]]
+    gl.uniform2f(uniforms.uCursorVelocity, -mouseVelocity[0], -mouseVelocity[1]);
     // ...update old mouse position
     oldMouse = newMouse;
-  });
+  })
+
 
   /* =========================================================
                         INITIALIZATION
   ========================================================= */
-  let gl = canvasGL.getContext('webgl', {
+  let gl = canvasGL.getContext("webgl", {
     antialias: false,
     alpha: true,
     // premultipliedAlpha: false
   });
   canvasGL.width = windowWidth;
   canvasGL.height = windowHeight;
-  canvasGL.style.position = 'fixed';
-  (canvasGL.style.left = 0),
-    (canvasGL.style.top = 0),
-    (canvasGL.style.zIndex = 1);
+  canvasGL.style.position = 'fixed'
+  canvasGL.style.left = 0,
+  canvasGL.style.top = 0,
+  canvasGL.style.zIndex = 1;
   // canvasGL.style.pointerEvents = 'none'
 
   document.body.appendChild(canvasGL);
 
-  console.log(`🔥  canvasGL`, canvasGL);
-  console.log(`🔥  document.body`, document.body);
-
   // create shaders
   const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-  const fragmentShader = createShader(
-    gl,
-    gl.FRAGMENT_SHADER,
-    fragmentShaderSource,
-  );
+  const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 
   // create program
   const program = createProgram(gl, vertexShader, fragmentShader);
@@ -188,7 +169,7 @@ function init() {
   // look up the location (within the webgl program) of the attributes and uniforms
   const attributes = {
     aPositionLocation: gl.getAttribLocation(program, 'aPosition'),
-    aTexCoordLocation: gl.getAttribLocation(program, 'aTexCoord'),
+    aTexCoordLocation: gl.getAttribLocation(program, 'aTexCoord')
   };
   const uniforms = {
     uResolution: gl.getUniformLocation(program, 'uResolution'),
@@ -205,20 +186,30 @@ function init() {
   // ...and bind it to the ARRAY_BUFFER binding point, which is for vertex attributes...
   gl.bindBuffer(gl.ARRAY_BUFFER, aPositionBuffer);
   // ...and then add data by referencing it through the bind point
-  const positions = [0, 0, 1.0, 0, 1.0, 1.0, 1.0, 1.0, 0, 1.0, 0, 0];
+  const positions = [
+    0, 0,
+    1.0, 0,
+    1.0, 1.0,
+    1.0, 1.0,
+    0, 1.0,
+    0, 0
+  ]
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
   // map the -1 to 1 clip space to 0 -> canvas width, 0 -> canvas height
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
   const aTexCoordBuffer = gl.createBuffer();
-  const texPositions = [0, 0, 1.0, 0, 1.0, 1.0, 1.0, 1.0, 0, 1.0, 0, 0];
+  const texPositions = [
+    0, 0,
+    1.0, 0,
+    1.0, 1.0,
+    1.0, 1.0,
+    0, 1.0,
+    0, 0
+  ]
   gl.bindBuffer(gl.ARRAY_BUFFER, aTexCoordBuffer);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array(texPositions),
-    gl.STATIC_DRAW,
-  );
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texPositions), gl.STATIC_DRAW);
 
   const textures = [];
   const framebuffers = [];
@@ -249,13 +240,7 @@ function init() {
     framebuffers.push(fbo);
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     // ...and attach a texture to it
-    gl.framebufferTexture2D(
-      gl.FRAMEBUFFER,
-      gl.COLOR_ATTACHMENT0,
-      gl.TEXTURE_2D,
-      texture,
-      0,
-    );
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
   }
 
   // tell webgl to use our shader program (we only have 1, so we don't need to do this in the render loop)
@@ -280,21 +265,14 @@ function init() {
   gl.bindBuffer(gl.ARRAY_BUFFER, aPositionBuffer);
 
   // tell the attribute how to get data out of the buffer
-  const size = 2; // 2 components per iteration
-  const type = gl.FLOAT; // the data is 32 bit floats
-  const normalize = false; // don't normalize data
-  const stride = 0; // specify the size in bytes of the offset between the beginng of consecurtive vertex attributes
-  const offset = 0; // offset in bytes of the first component in the vertex attribute ARRAY_BUFFER
+  const size = 2;         // 2 components per iteration
+  const type = gl.FLOAT;  // the data is 32 bit floats
+  const normalize = false;// don't normalize data
+  const stride = 0;       // specify the size in bytes of the offset between the beginng of consecurtive vertex attributes
+  const offset = 0;       // offset in bytes of the first component in the vertex attribute ARRAY_BUFFER
 
   // bind attribute to aPosBuffer, so that we're now free to bind something else to the ARRAY_BUFFER bind point. This attribute will continue to use positionBuffer.
-  gl.vertexAttribPointer(
-    attributes.aPositionLocation,
-    size,
-    type,
-    normalize,
-    stride,
-    offset,
-  );
+  gl.vertexAttribPointer(attributes.aPositionLocation, size, type, normalize, stride, offset);
 
   /* NB: Our vertex shader used to be expecting aPos to be a vec4 (but then we changed it vec2). We set size = 2, so this attribute will get its first 2 values from our buffer. Attributes default to 0,0,0,1, so the last two components will be 0, 1.*/
 
@@ -303,14 +281,7 @@ function init() {
   // bind the tex coord buffer
   gl.bindBuffer(gl.ARRAY_BUFFER, aTexCoordBuffer);
   // bind attribute to aTexCoordBuffer
-  gl.vertexAttribPointer(
-    attributes.aTexCoordLocation,
-    size,
-    type,
-    normalize,
-    stride,
-    offset,
-  );
+  gl.vertexAttribPointer(attributes.aTexCoordLocation, size, type, normalize, stride, offset);
 
   /* =============================
     Execute our GLSL program 
@@ -332,7 +303,7 @@ function init() {
     gl.uniform1f(uniforms.uFlipY, false);
     // ping pong through the effects
     ind++;
-    setFramebuffer(framebuffers[ind % 2], logo.width, logo.height);
+    setFramebuffer(framebuffers[ind % 2], logo.width, logo.height)
 
     gl.drawArrays(primitiveType, first, count);
 
@@ -345,7 +316,7 @@ function init() {
     gl.drawArrays(primitiveType, first, count);
 
     function setFramebuffer(fbo, width, height) {
-      // make this the frame buffer we are rendering to
+      // make this the frame buffer we are rendering to 
       gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
       // tell the shader the resolution of the framebuffer
       // gl.uniform2f(uniforms.uResolution, width, height); // tell webgl the viewport setting needed for framebuffer
@@ -367,7 +338,7 @@ function init() {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
-    const successfulCompile = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    const successfulCompile = gl.getShaderParameter(shader, gl.COMPILE_STATUS)
     if (successfulCompile) {
       return shader;
     } else {
@@ -398,4 +369,4 @@ window.addEventListener('resize', () => {
   windowHeight = window.innerHeight;
   canvasGL.width = windowWidth;
   canvasGL.height = windowHeight;
-});
+})

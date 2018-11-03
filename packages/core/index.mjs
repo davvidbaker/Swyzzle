@@ -1,31 +1,51 @@
 import vertexShaderSource from './shaders/vertex/basic.mjs';
 import fragmentShaderSource from './shaders/fragment/og.mjs';
 
-console.log(`🔥  vertexShaderSource`, vertexShaderSource);
+function setCanvasDimensions(canvas, elementRect) {
+  canvas.width = Math.floor(elementRect.width);
+  canvas.height = Math.floor(elementRect.height);
+}
 
-const canvasGL = document.createElement('canvas');
-let windowHeight = window.innerHeight;
-let windowWidth = window.innerWidth;
-const startTime = Date.now();
-let timer = 0;
-let oldMouse = (newMouse = [0.5, 0.5]);
-let mouseVelocity = [0, 0];
+/* 💁 domElement can either be an image or a canvas */
+function init(domElement) {
+  let elementRect = domElement.getBoundingClientRect();
+  console.log(`🔥  elementRect`, elementRect);
 
-const logo = new Image();
-logo.src = './SwyzzleLogo2.png';
-logo.onload = init;
-console.log(`🔥  logo`, logo);
+  const startTime = Date.now();
+  let timer = 0;
+  let oldMouse = [0.5, 0.5];
+  let newMouse = [0.5, 0.5];
 
-function init() {
-  document.addEventListener('mousemove', evt => {
+  let mouseVelocity = [0, 0];
+
+  const canvasGL = document.createElement('canvas');
+  // canvasGL.style.position = 'absolute';
+  setCanvasDimensions(canvasGL, elementRect);
+
+  let gl = canvasGL.getContext('webgl', {
+    antialias: false,
+    alpha: true,
+    // premultipliedAlpha: false
+  });
+
+  function handleWindowResize() {
+    elementRect = domElement.getBoundingClientRect();
+    // map the -1 to 1 clip space to 0 -> canvas width, 0 -> canvas height
+    setCanvasDimensions(canvasGL, elementRect);
+    gl.viewport(0, 0, canvasGL.width, canvasGL.height);
+  }
+
+  function handleMouseMove(evt) {
     let cursor = {
       pos: {
-        x: evt.clientX,
-        y: evt.clientY,
+        x: evt.pageX,
+        y: evt.pageY,
       },
     };
-    newMouse = [cursor.pos.x / windowWidth, cursor.pos.y / windowHeight];
-    // uniforms.uMouse.value = new THREE.Vector2(arg.x/windowWidth, arg.y/windowHeight);//.x = evt.clientX/width;
+    newMouse = [
+      cursor.pos.x / elementRect.width,
+      cursor.pos.y / elementRect.height,
+    ];
 
     // neeed to make sure these values are being updated even if the main window isn't open which prevents window.request animation frame from being called
     gl.uniform2f(uniforms.uCursor, newMouse[0], newMouse[1]);
@@ -39,20 +59,21 @@ function init() {
     );
     // ...update old mouse position
     oldMouse = newMouse;
-  });
+  }
+  domElement.parentNode.insertBefore(canvasGL, domElement);
 
-  /* =========================================================
-                        INITIALIZATION
-  ========================================================= */
-  let gl = canvasGL.getContext('webgl', {
-    antialias: false,
-    alpha: true,
-    // premultipliedAlpha: false
-  });
-  canvasGL.width = windowWidth;
-  canvasGL.height = windowHeight;
+  if (domElement.nodeName === 'CANVAS') {
+  }
 
-  document.body.appendChild(canvasGL);
+  window.addEventListener('resize', handleWindowResize);
+  canvasGL.addEventListener('mousemove', handleMouseMove);
+
+  function cleanup() {
+    window.removeEventListener('resize', handleWindowResize);
+    canvasGL.addEventListener('mousemove', handleMouseMove);
+
+    canvasGL.remove();
+  }
 
   // create shaders
   const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
@@ -89,7 +110,7 @@ function init() {
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
   // map the -1 to 1 clip space to 0 -> canvas width, 0 -> canvas height
-  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+  gl.viewport(0, 0, canvasGL.width, canvasGL.height);
 
   const aTexCoordBuffer = gl.createBuffer();
   const texPositions = [0, 0, 1.0, 0, 1.0, 1.0, 1.0, 1.0, 0, 1.0, 0, 0];
@@ -122,7 +143,22 @@ function init() {
     textures.push(texture);
 
     // make texture same size as image
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, logo);
+    console.log(
+      `🔥  document.querySelector('canvas')`,
+      document.querySelector('canvas'),
+    );
+    console.log(`🔥  canvasGL`, canvasGL);
+    console.log(`🔥  
+      domElement.parentNode.children[0],
+    `);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      domElement,
+    );
 
     // create a framebuffer...
     const fbo = gl.createFramebuffer();
@@ -142,8 +178,8 @@ function init() {
   gl.useProgram(program);
 
   // set the value of resolution uniform
-  gl.uniform2f(uniforms.uResolution, windowWidth, windowHeight);
-  gl.uniform1f(uniforms.uAspect, windowWidth / windowHeight);
+  gl.uniform2f(uniforms.uResolution, canvasGL.width, canvasGL.height);
+  gl.uniform1f(uniforms.uAspect, canvasGL.width / canvasGL.height);
   /* =========================================================
                           RENDERING
   ========================================================= */
@@ -212,7 +248,7 @@ function init() {
     gl.uniform1f(uniforms.uFlipY, false);
     // ping pong through the effects
     ind++;
-    setFramebuffer(framebuffers[ind % 2], logo.width, logo.height);
+    setFramebuffer(framebuffers[ind % 2], canvasGL.width, canvasGL.height);
 
     gl.drawArrays(primitiveType, first, count);
 
@@ -271,13 +307,8 @@ function init() {
       gl.deleteProgram(program);
     }
   }
+
+  return cleanup;
 }
 
-window.addEventListener('resize', () => {
-  windowWidth = window.innerWidth;
-  windowHeight = window.innerHeight;
-  canvasGL.width = windowWidth;
-  canvasGL.height = windowHeight;
-});
-
-export default init
+export default init;

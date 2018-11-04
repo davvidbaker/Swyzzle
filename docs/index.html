@@ -5,7 +5,8 @@
   <meta charset="UTF-8">
   <title>Swyzzle</title>
   <link rel=icon href=./icon.png sizes="32x32" type="image/png">
-  <link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet">
+  <script language="javascript" src="https://npmcdn.com/regl/dist/regl.js"></script>
+  <!-- <link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet"> -->
 </head>
 
 <body>
@@ -95,9 +96,19 @@
     #swyzz {
       max-width: 100vw;
     }
-  </style>
-  <img id="swyzz" src="./SwyzzleLogo2.png" alt="Swyzzle">
 
+
+    #swyzz-container {
+      position: fixed;
+    }
+
+    #swyzz-container canvas {
+      position: absolute;
+    }
+  </style>
+  <div id="swyzz-container">
+    <img id="swyzz" src="./SwyzzleLogo2.png" alt="Swyzzle">
+  </div>
   <ul class="info">
     <li class="description">
       <h1>The screensaver revolution has begun.</h1>
@@ -132,7 +143,10 @@
     import swyzzle from '/core/index.mjs';
     const img = document.querySelector("#swyzz");
 
-    const cleanup = swyzzle(img);
+    const cleanup = swyzzle(img, '#swyzz-container');
+
+    setTimeout(cleanup, 3000)
+    
   </script>
 
 </html>

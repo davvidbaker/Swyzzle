@@ -1,0 +1,14 @@
+{
+  "name": "swyzzle",
+  "version": "0.0.6",
+  "description": "melty goodness",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "David Baker",
+  "license": "MIT",
+  "dependencies": {
+    "regl": "^1.3.9"
+  }
+}

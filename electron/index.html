@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Swyzzle</title>
+    <style>
+      :root { color-scheme: dark; font-family: ui-sans-serif, system-ui, sans-serif; }
+      * { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: transparent; }
+      body { color: #fff; }
+      #glCanvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 180ms ease;
+      }
+      #glCanvas.visible { opacity: 1; }
+      #controls {
+        position: fixed;
+        top: 18px;
+        right: 18px;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: auto auto auto;
+        gap: 8px;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 12px;
+        background: rgba(15, 20, 24, 0.78);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+      }
+      button, select {
+        min-height: 38px;
+        border: 0;
+        border-radius: 8px;
+        padding: 0 13px;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.14);
+        font: inherit;
+      }
+      button { cursor: pointer; background: #247f4b; }
+      button:hover { background: #2b9458; }
+      button:disabled { cursor: wait; opacity: 0.58; }
+      #status {
+        grid-column: 1 / -1;
+        max-width: 420px;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 12px;
+      }
+      #status[data-kind="error"] { color: #ffadad; }
+      .cursor-hidden { cursor: none; }
+    </style>
+  </head>
+  <body>
+    <canvas id="glCanvas" aria-hidden="true"></canvas>
+    <div id="controls">
+      <select id="shaderSelect" aria-label="Effect">
+        <option value="basic">Basic</option>
+        <option value="fluid">Fluid Simulation</option>
+        <option value="swyzzle" selected>Swyzzle Effect</option>
+      </select>
+      <button id="captureBtn" type="button">Capture Screen</button>
+      <button id="resetBtn" type="button">Reset Effect</button>
+      <div id="status" role="status">Capture the primary display to begin. Press Escape to quit.</div>
+    </div>
+    <script type="module" src="./renderer.js"></script>
+  </body>
+</html>

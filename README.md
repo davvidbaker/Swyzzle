@@ -62,7 +62,7 @@ The browser bundle is also available as a script-tag global:
 - `new Swyzzle(options)` creates an overlay canvas, or uses `options.canvas`.
 - `capture(elementOrPixelSource, options)` captures a DOM element or consumes an
   image, canvas, video, `ImageBitmap`, or `OffscreenCanvas`.
-- `setEffect('basic' | 'fluid' | 'swyzzle')` changes the active shader.
+- `setEffect('basic' | 'fluid' | 'swyzzle' | 'og' | 'blendmelt' | 'rgb' | 'subtle' | 'gameOfStrife')` changes the active shader.
 - `start()` / `stop()` control animation.
 - `reset()` restores the original captured pixels.
 - `show()` / `hide()` control the overlay.

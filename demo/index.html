@@ -3,79 +3,473 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Swyzzle web demo</title>
+    <title>Swyzzle Demo</title>
     <style>
-      :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+      :root {
+        color-scheme: dark;
+        font-family: "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
       * { box-sizing: border-box; }
+
       body {
         min-height: 100vh;
         margin: 0;
-        color: #f5f7f6;
+        overflow: hidden;
+        color: #fff;
         background:
-          radial-gradient(circle at 18% 20%, #245e47 0, transparent 34%),
-          radial-gradient(circle at 80% 15%, #34306d 0, transparent 30%),
-          #0a0f0d;
+          radial-gradient(circle at 15% 20%, rgba(255, 120, 180, 0.55), transparent 28%),
+          radial-gradient(circle at 82% 18%, rgba(90, 180, 255, 0.65), transparent 32%),
+          radial-gradient(circle at 55% 78%, rgba(120, 90, 255, 0.45), transparent 34%),
+          linear-gradient(145deg, #0d2f66 0%, #2b1d73 38%, #6b2f86 68%, #d65f7d 100%);
       }
-      main { width: min(880px, calc(100% - 40px)); margin: 0 auto; padding: 15vh 0; }
-      .eyebrow { color: #7de6ad; letter-spacing: .16em; text-transform: uppercase; }
-      h1 { max-width: 760px; margin: 12px 0 18px; font-size: clamp(48px, 9vw, 100px); line-height: .9; }
-      p { max-width: 620px; color: #bec9c3; font-size: 19px; line-height: 1.6; }
-      .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 60px; }
-      .card { min-height: 150px; padding: 20px; border: 1px solid #ffffff20; border-radius: 18px; background: #ffffff0b; }
+
+      .desktop {
+        position: relative;
+        min-height: 100vh;
+        padding: 34px 24px 110px;
+      }
+
+      .menu-bar {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 28px;
+        padding: 0 14px;
+        background: rgba(20, 20, 20, 0.34);
+        backdrop-filter: blur(18px) saturate(160%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .menu-left,
+      .menu-right {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+
+      .apple-mark {
+        width: 14px;
+        height: 14px;
+        border-radius: 50% 50% 45% 45%;
+        background: rgba(255, 255, 255, 0.92);
+        position: relative;
+      }
+
+      .apple-mark::after {
+        content: "";
+        position: absolute;
+        top: -3px;
+        right: 1px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.92);
+      }
+
+      .menu-item { opacity: 0.92; }
+      .menu-item.active { font-weight: 700; }
+
+      .desktop-icons {
+        position: absolute;
+        top: 52px;
+        right: 24px;
+        display: grid;
+        gap: 22px;
+        width: 84px;
+        text-align: center;
+        font-size: 11px;
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+      }
+
+      .desktop-icon {
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+      }
+
+      .icon-tile {
+        width: 58px;
+        height: 58px;
+        border-radius: 14px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+      }
+
+      .icon-tile.photos {
+        background:
+          conic-gradient(from 210deg, #ff6b8a, #ffd166, #6ee7b7, #60a5fa, #c084fc, #ff6b8a);
+      }
+
+      .icon-tile.notes {
+        background: linear-gradient(180deg, #fff7a8, #facc15);
+      }
+
+      .icon-tile.trash {
+        background: linear-gradient(180deg, #d1d5db, #6b7280);
+      }
+
+      .window {
+        position: absolute;
+        width: min(420px, calc(100vw - 48px));
+        border-radius: 12px;
+        overflow: hidden;
+        background: rgba(28, 28, 30, 0.72);
+        backdrop-filter: blur(28px) saturate(150%);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+      }
+
+      .window-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .traffic-lights {
+        display: flex;
+        gap: 7px;
+      }
+
+      .light {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+
+      .light.red { background: #ff5f57; }
+      .light.yellow { background: #febc2e; }
+      .light.green { background: #28c840; }
+
+      .finder {
+        top: 72px;
+        left: 28px;
+      }
+
+      .finder-body {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        min-height: 260px;
+      }
+
+      .sidebar {
+        padding: 12px 10px;
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.78);
+      }
+
+      .sidebar div {
+        padding: 7px 10px;
+        border-radius: 8px;
+      }
+
+      .sidebar div.selected {
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+      }
+
+      .finder-main {
+        padding: 16px;
+      }
+
+      .finder-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+
+      .folder {
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.86);
+      }
+
+      .folder-icon {
+        width: 54px;
+        height: 42px;
+        border-radius: 8px 8px 4px 4px;
+        background: linear-gradient(180deg, #7cc7ff 0%, #3b82f6 100%);
+        position: relative;
+      }
+
+      .folder-icon::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        left: 0;
+        width: 22px;
+        height: 10px;
+        border-radius: 6px 6px 0 0;
+        background: #93c5fd;
+      }
+
+      .window.notes {
+        top: 120px;
+        left: 34%;
+        width: min(360px, calc(100vw - 48px));
+      }
+
+      .notes-body {
+        padding: 18px 20px 24px;
+        font-size: 15px;
+        line-height: 1.55;
+        color: rgba(255, 255, 255, 0.88);
+      }
+
+      .notes-body h2 {
+        margin: 0 0 10px;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .widget {
+        position: absolute;
+        right: 130px;
+        bottom: 130px;
+        width: 220px;
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.14);
+        backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+      }
+
+      .widget-time {
+        font-size: 54px;
+        font-weight: 200;
+        letter-spacing: -0.04em;
+      }
+
+      .widget-date {
+        margin-top: 4px;
+        font-size: 14px;
+        opacity: 0.82;
+      }
+
+      .dock-wrap {
+        position: fixed;
+        left: 50%;
+        bottom: 10px;
+        z-index: 20;
+        transform: translateX(-50%);
+      }
+
+      .dock {
+        display: flex;
+        align-items: end;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(24px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+      }
+
+      .dock-app {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+      }
+
+      .dock-app.finder { background: linear-gradient(180deg, #7cc7ff, #2563eb); }
+      .dock-app.safari { background: radial-gradient(circle at 30% 30%, #fff, #38bdf8 35%, #2563eb 100%); }
+      .dock-app.messages { background: linear-gradient(180deg, #86efac, #16a34a); }
+      .dock-app.music { background: linear-gradient(180deg, #fda4af, #ef4444); }
+      .dock-app.swyzzle {
+        background: linear-gradient(180deg, #5eead4, #0891b2);
+        transform: translateY(-8px) scale(1.08);
+      }
+
       #controls {
         position: fixed;
         z-index: 2147483647;
-        top: 16px;
+        top: 40px;
         right: 16px;
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
-        max-width: calc(100vw - 32px);
+        max-width: min(420px, calc(100vw - 32px));
         padding: 10px;
-        border: 1px solid #ffffff22;
-        border-radius: 12px;
-        background: #101714dc;
-        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 14px;
+        background: rgba(20, 20, 20, 0.58);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
       }
+
       button, select {
-        min-height: 38px;
+        min-height: 34px;
         border: 0;
         border-radius: 8px;
-        padding: 0 13px;
+        padding: 0 12px;
         color: #fff;
-        background: #ffffff18;
+        background: rgba(255, 255, 255, 0.12);
         font: inherit;
+        font-size: 12px;
       }
-      button { cursor: pointer; background: #247f4b; }
-      #message { align-self: center; color: #bdc7c2; font-size: 12px; }
-      @media (max-width: 650px) { .cards { grid-template-columns: 1fr; } }
+
+      button { cursor: pointer; background: rgba(36, 127, 75, 0.92); }
+      #message {
+        flex: 1 1 100%;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 12px;
+      }
+
+      @media (max-width: 900px) {
+        .window.notes { left: 24px; top: 360px; }
+        .widget { right: 24px; bottom: 120px; }
+        .desktop-icons { top: auto; bottom: 120px; right: 24px; }
+      }
     </style>
   </head>
   <body>
-    <main>
-      <div class="eyebrow">WebGL feedback effects</div>
-      <h1>Melt this page.</h1>
-      <p>
-        Swyzzle captures ordinary page content into a canvas, then turns pointer
-        movement into a fluid, persistent distortion.
-      </p>
-      <div class="cards">
-        <div class="card"><strong>Framework neutral</strong><p>Use the same small API anywhere.</p></div>
-        <div class="card"><strong>GPU rendered</strong><p>Feedback shaders keep the motion alive.</p></div>
-        <div class="card"><strong>Desktop ready</strong><p>The Electron app shares this engine.</p></div>
+    <div class="menu-bar">
+      <div class="menu-left">
+        <div class="apple-mark" aria-hidden="true"></div>
+        <span class="menu-item active">Finder</span>
+        <span class="menu-item">File</span>
+        <span class="menu-item">Edit</span>
+        <span class="menu-item">View</span>
+        <span class="menu-item">Go</span>
+        <span class="menu-item">Window</span>
+        <span class="menu-item">Help</span>
       </div>
-    </main>
+      <div class="menu-right">
+        <span class="menu-item">Wi‑Fi</span>
+        <span class="menu-item">100%</span>
+        <span class="menu-item" id="menu-clock">Thu 11:46 PM</span>
+      </div>
+    </div>
+
+    <div class="desktop">
+      <section class="window finder" aria-label="Finder window">
+        <div class="window-header">
+          <div class="traffic-lights" aria-hidden="true">
+            <span class="light red"></span>
+            <span class="light yellow"></span>
+            <span class="light green"></span>
+          </div>
+          <span>Desktop</span>
+        </div>
+        <div class="finder-body">
+          <div class="sidebar">
+            <div class="selected">Desktop</div>
+            <div>Documents</div>
+            <div>Downloads</div>
+            <div>Applications</div>
+          </div>
+          <div class="finder-main">
+            <div class="finder-grid">
+              <div class="folder"><div class="folder-icon"></div>Projects</div>
+              <div class="folder"><div class="folder-icon"></div>Shaders</div>
+              <div class="folder"><div class="folder-icon"></div>Captures</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="window notes" aria-label="Notes window">
+        <div class="window-header">
+          <div class="traffic-lights" aria-hidden="true">
+            <span class="light red"></span>
+            <span class="light yellow"></span>
+            <span class="light green"></span>
+          </div>
+          <span>Notes</span>
+        </div>
+        <div class="notes-body">
+          <h2>Hold still for one second.</h2>
+          Swyzzle will capture this fake desktop and run Game of Strife on it.
+          Move the pointer afterward to seed bright pixels into the automata.
+        </div>
+      </section>
+
+      <aside class="widget" aria-label="Clock widget">
+        <div class="widget-time" id="widget-time">11:46</div>
+        <div class="widget-date" id="widget-date">Thursday, September 3</div>
+      </aside>
+
+      <div class="desktop-icons" aria-hidden="true">
+        <div class="desktop-icon"><div class="icon-tile photos"></div>Photos</div>
+        <div class="desktop-icon"><div class="icon-tile notes"></div>Notes</div>
+        <div class="desktop-icon"><div class="icon-tile trash"></div>Trash</div>
+      </div>
+    </div>
+
+    <div class="dock-wrap">
+      <div class="dock" aria-label="Dock">
+        <div class="dock-app finder"></div>
+        <div class="dock-app safari"></div>
+        <div class="dock-app messages"></div>
+        <div class="dock-app music"></div>
+        <div class="dock-app swyzzle"></div>
+      </div>
+    </div>
+
     <div id="controls">
       <select id="effect" aria-label="Effect">
-        <option value="swyzzle">Swyzzle</option>
-        <option value="fluid">Fluid</option>
         <option value="basic">Basic</option>
+        <optgroup label="Classic">
+          <option value="og">OG Melt</option>
+          <option value="swyzzle">Swyzzle</option>
+          <option value="blendmelt">Blend Melt</option>
+          <option value="rgb">RGB Spread</option>
+          <option value="subtle">Subtle</option>
+          <option value="gameOfStrife" selected>Game of Strife</option>
+        </optgroup>
+        <optgroup label="Simulation">
+          <option value="fluid">Fluid</option>
+        </optgroup>
       </select>
       <button id="melt" type="button">Capture &amp; melt</button>
       <button id="reset" type="button">Reset</button>
       <button id="clear" type="button">Clear</button>
       <span id="message" role="status"></span>
     </div>
+
+    <script>
+      const time = document.querySelector('#widget-time');
+      const date = document.querySelector('#widget-date');
+      const menuClock = document.querySelector('#menu-clock');
+      const formatter = new Intl.DateTimeFormat(undefined, {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      });
+      const clockFormatter = new Intl.DateTimeFormat(undefined, {
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+      const menuFormatter = new Intl.DateTimeFormat(undefined, {
+        weekday: 'short',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+
+      function updateClock() {
+        const now = new Date();
+        time.textContent = clockFormatter.format(now);
+        date.textContent = formatter.format(now);
+        menuClock.textContent = menuFormatter.format(now);
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+    </script>
     <script src="./bundle.js"></script>
   </body>
 </html>

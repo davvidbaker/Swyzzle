@@ -61,8 +61,17 @@
     <div id="controls">
       <select id="shaderSelect" aria-label="Effect">
         <option value="basic">Basic</option>
-        <option value="fluid">Fluid Simulation</option>
-        <option value="swyzzle" selected>Swyzzle Effect</option>
+        <optgroup label="Classic">
+          <option value="og">OG Melt</option>
+          <option value="swyzzle" selected>Swyzzle</option>
+          <option value="blendmelt">Blend Melt</option>
+          <option value="rgb">RGB Spread</option>
+          <option value="subtle">Subtle</option>
+          <option value="gameOfStrife">Game of Strife</option>
+        </optgroup>
+        <optgroup label="Simulation">
+          <option value="fluid">Fluid</option>
+        </optgroup>
       </select>
       <button id="captureBtn" type="button">Capture Screen</button>
       <button id="resetBtn" type="button">Reset Effect</button>

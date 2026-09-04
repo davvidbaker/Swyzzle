@@ -2,10 +2,11 @@ import { expect, test } from '@playwright/test';
 
 test('captures the demo page and controls the melt effect', async ({ page }) => {
   await page.goto('/demo/index.html');
-  await expect(page.getByRole('heading', { name: 'Melt this page.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Hold still for one second.' })).toBeVisible();
+  await expect(page.getByLabel('Effect')).toHaveValue('gameOfStrife');
 
-  await page.getByRole('button', { name: 'Capture & melt' }).click();
-  await expect(page.getByText('Move your pointer across the page.')).toBeVisible();
+  await page.waitForTimeout(1200);
+  await expect(page.getByText('Game of Strife is running. Move the pointer to seed pixels.')).toBeVisible();
   await expect(page.locator('.swyzzle-overlay')).toHaveCSS('opacity', '1');
 
   await page.getByLabel('Effect').selectOption('fluid');

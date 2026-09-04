@@ -1,6 +1,7 @@
 import {
   displayFragmentShader,
   effectShaders,
+  nearestNeighborEffects,
   vertexShader,
 } from './shaders.js';
 
@@ -229,7 +230,7 @@ export class SwyzzleRenderer {
     if (!rect.width || !rect.height) return;
     const next = [
       Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)),
-      Math.min(1, Math.max(0, 1 - (event.clientY - rect.top) / rect.height)),
+      Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height)),
     ];
     if (this.lastPointer) {
       this.velocity = [next[0] - this.lastPointer[0], next[1] - this.lastPointer[1]];
@@ -249,10 +250,12 @@ export class SwyzzleRenderer {
     gl.vertexAttribPointer(texCoord, 2, gl.FLOAT, false, 16, 8);
   }
 
-  bindTexture(program, uniform, unit, texture) {
+  bindTexture(program, uniform, unit, texture, filter = this.gl.LINEAR) {
     const gl = this.gl;
     gl.activeTexture(gl.TEXTURE0 + unit);
     gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
     gl.uniform1i(gl.getUniformLocation(program, uniform), unit);
   }
 
@@ -272,11 +275,12 @@ export class SwyzzleRenderer {
     if (this.effect !== 'basic') {
       const writeIndex = 1 - this.readIndex;
       const program = this.getProgram(this.effect);
+      const feedbackFilter = nearestNeighborEffects.has(this.effect) ? gl.NEAREST : gl.LINEAR;
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffers[writeIndex]);
       gl.viewport(0, 0, this.sourceWidth, this.sourceHeight);
       gl.useProgram(program);
-      this.bindTexture(program, 'uImage', 0, this.sourceTexture);
-      this.bindTexture(program, 'uFeedback', 1, this.feedbackTextures[this.readIndex]);
+      this.bindTexture(program, 'uImage', 0, this.sourceTexture, gl.LINEAR);
+      this.bindTexture(program, 'uFeedback', 1, this.feedbackTextures[this.readIndex], feedbackFilter);
       gl.uniform1f(gl.getUniformLocation(program, 'uTime'), (performance.now() - this.startedAt) / 1000);
       gl.uniform2fv(gl.getUniformLocation(program, 'uPointer'), this.pointer);
       gl.uniform2fv(gl.getUniformLocation(program, 'uVelocity'), this.velocity);

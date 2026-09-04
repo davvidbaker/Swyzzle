@@ -24,5 +24,14 @@ test('DOM capture rejects non-elements with a useful error', async () => {
 });
 
 test('publishes the preserved desktop effects', () => {
-  assert.deepEqual(SwyzzleRenderer.effects, ['basic', 'swyzzle', 'fluid']);
+  assert.deepEqual(SwyzzleRenderer.effects, [
+    'basic',
+    'swyzzle',
+    'fluid',
+    'og',
+    'blendmelt',
+    'rgb',
+    'subtle',
+    'gameOfStrife',
+  ]);
 });

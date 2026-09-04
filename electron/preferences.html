@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Swyzzle Preferences</title>
+    <style>
+      :root { color-scheme: dark; font-family: "SF Pro Text", ui-sans-serif, system-ui, sans-serif; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 22px 24px 24px;
+        color: #f2f2f2;
+        background: #1c1c1e;
+      }
+      h1 {
+        margin: 0 0 18px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      label {
+        display: block;
+        margin-bottom: 6px;
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      select {
+        width: 100%;
+        height: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        padding: 0 10px;
+        color: #fff;
+        background: #2c2c2e;
+        font: inherit;
+        font-size: 13px;
+      }
+      p {
+        margin: 16px 0 0;
+        color: rgba(255, 255, 255, 0.48);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Swyzzle</h1>
+    <label for="effect">Effect</label>
+    <select id="effect"></select>
+    <p>Capture, pause, and clear from the menu bar icon. Escape clears the overlay.</p>
+    <script type="module" src="./preferences.js"></script>
+  </body>
+</html>

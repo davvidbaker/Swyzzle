@@ -7,7 +7,7 @@ export default [
   },
   js.configs.recommended,
   {
-    files: ['src/**/*.js', 'demo/**/*.js', 'electron/renderer.js'],
+    files: ['src/**/*.js', 'demo/**/*.js', 'electron/renderer.js', 'electron/preferences.js'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

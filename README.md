@@ -1,8 +1,8 @@
 # Swyzzle
 
 Swyzzle captures pixels and melts them with interactive WebGL feedback shaders.
-It includes the maintained full-screen Electron app and a framework-neutral web
-package built from the same rendering engine.
+It includes a macOS menu-bar Electron app and a framework-neutral web package
+built from the same rendering engine.
 
 ## Desktop app
 
@@ -11,9 +11,8 @@ npm install
 npm start
 ```
 
-Click **Capture Screen**, then move the pointer across the captured display.
-Choose Basic, Fluid, or Swyzzle from the effect menu, reset the effect at any
-time, and press Escape to quit.
+Swyzzle lives in the menu bar. Use the icon to **Capture**, **Pause**, **Reset**,
+**Clear**, or open **Preferences**. Escape clears the overlay.
 
 On macOS, allow the app that launches Electron to record the screen in
 **System Settings → Privacy & Security → Screen Recording**. Swyzzle reports a

@@ -1,8 +1,12 @@
 import {
   app,
   BrowserWindow,
+  Menu,
+  Tray,
   desktopCapturer,
+  dialog,
   ipcMain,
+  nativeImage,
   screen,
   systemPreferences,
 } from 'electron';
@@ -10,34 +14,103 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
-let mainWindow;
 
-function createWindow() {
+export const EFFECTS = [
+  ['basic', 'Basic'],
+  ['og', 'OG Melt'],
+  ['swyzzle', 'Swyzzle'],
+  ['blendmelt', 'Blend Melt'],
+  ['rgb', 'RGB Spread'],
+  ['subtle', 'Subtle'],
+  ['gameOfStrife', 'Game of Strife'],
+  ['fluid', 'Fluid'],
+];
+
+let overlayWindow;
+let preferencesWindow;
+let tray;
+const state = {
+  captured: false,
+  paused: false,
+  effect: 'swyzzle',
+};
+
+function appIcon() {
+  const file = process.platform === 'win32' ? 'icon.ico' : 'trayIconSpread512.png';
+  return nativeImage.createFromPath(path.join(directory, 'images', file));
+}
+
+function applyAppIcon() {
+  const icon = appIcon();
+  if (process.platform === 'darwin') app.dock.setIcon(icon);
+}
+
+function preloadPath() {
+  return path.join(directory, 'preload.cjs');
+}
+
+function createOverlayWindow() {
   const display = screen.getPrimaryDisplay();
-  mainWindow = new BrowserWindow({
+  overlayWindow = new BrowserWindow({
     ...display.workArea,
     frame: false,
     transparent: true,
     backgroundColor: '#00000000',
     hasShadow: false,
     show: false,
+    skipTaskbar: true,
+    icon: appIcon(),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      preload: path.join(directory, 'preload.cjs'),
+      preload: preloadPath(),
     },
   });
 
-  mainWindow.setMenuBarVisibility(false);
-  mainWindow.loadFile(path.join(directory, 'index.html'));
-  mainWindow.once('ready-to-show', () => mainWindow?.show());
-  mainWindow.webContents.on('before-input-event', (_event, input) => {
-    if (input.key === 'Escape') app.quit();
+  overlayWindow.setMenuBarVisibility(false);
+  overlayWindow.setAlwaysOnTop(true, 'floating');
+  overlayWindow.setIgnoreMouseEvents(true, { forward: true });
+  overlayWindow.loadFile(path.join(directory, 'index.html'));
+  overlayWindow.on('closed', () => {
+    overlayWindow = null;
   });
-  mainWindow.on('closed', () => {
-    mainWindow = null;
+}
+
+function openPreferences() {
+  if (preferencesWindow && !preferencesWindow.isDestroyed()) {
+    preferencesWindow.show();
+    preferencesWindow.focus();
+    return;
+  }
+
+  preferencesWindow = new BrowserWindow({
+    width: 360,
+    height: 280,
+    show: false,
+    resizable: false,
+    fullscreenable: false,
+    minimizable: false,
+    title: 'Swyzzle Preferences',
+    icon: appIcon(),
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      preload: preloadPath(),
+    },
   });
+  preferencesWindow.setAlwaysOnTop(true, 'floating');
+  preferencesWindow.once('ready-to-show', () => preferencesWindow?.show());
+  preferencesWindow.loadFile(path.join(directory, 'preferences.html'));
+  preferencesWindow.on('closed', () => {
+    preferencesWindow = null;
+  });
+}
+
+function sendOverlay(command) {
+  if (!overlayWindow || overlayWindow.isDestroyed()) return;
+  overlayWindow.webContents.send('swyzzle:command', command);
 }
 
 function captureError(code, message) {
@@ -89,12 +162,76 @@ async function capturePrimaryDisplay() {
   };
 }
 
-ipcMain.handle('swyzzle:capture-screen', async () => {
-  const window = mainWindow;
+async function captureScreen() {
+  const overlay = overlayWindow;
+  const prefs = preferencesWindow && !preferencesWindow.isDestroyed() ? preferencesWindow : null;
   try {
-    window?.hide();
+    overlay?.hide();
+    prefs?.hide();
     await new Promise((resolve) => setTimeout(resolve, 120));
     return await capturePrimaryDisplay();
+  } finally {
+    if (overlay && !overlay.isDestroyed()) {
+      overlay.setIgnoreMouseEvents(true, { forward: true });
+    }
+    if (prefs && !prefs.isDestroyed()) prefs.show();
+  }
+}
+
+async function runCapture() {
+  try {
+    const capture = await captureScreen();
+    if (!overlayWindow || overlayWindow.isDestroyed()) return;
+    overlayWindow.show();
+    overlayWindow.setIgnoreMouseEvents(true, { forward: true });
+    sendOverlay({ type: 'capture', dataUrl: capture.dataUrl, effect: state.effect });
+    if (preferencesWindow && !preferencesWindow.isDestroyed()) {
+      preferencesWindow.show();
+    }
+  } catch (error) {
+    dialog.showErrorBox('Swyzzle', error.message || 'Screen capture failed.');
+  }
+}
+
+function updateTrayMenu() {
+  if (!tray) return;
+  const pauseLabel = state.paused ? 'Resume' : 'Pause';
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: 'Capture', click: () => runCapture() },
+    { label: pauseLabel, enabled: state.captured, click: () => sendOverlay({ type: state.paused ? 'resume' : 'pause' }) },
+    { label: 'Reset', enabled: state.captured, click: () => sendOverlay({ type: 'reset' }) },
+    { label: 'Clear', enabled: state.captured, click: () => sendOverlay({ type: 'clear' }) },
+    { type: 'separator' },
+    { label: 'Preferences…', accelerator: 'CmdOrCtrl+,', click: () => openPreferences() },
+    { type: 'separator' },
+    { label: 'Quit Swyzzle', role: 'quit' },
+  ]));
+}
+
+function createTray() {
+  tray = new Tray(path.join(directory, 'images/trayIconSpread.png'));
+  tray.setToolTip('Swyzzle');
+  updateTrayMenu();
+}
+
+function createApplicationMenu() {
+  const isMac = process.platform === 'darwin';
+  Menu.setApplicationMenu(Menu.buildFromTemplate([
+    {
+      label: app.getName(),
+      submenu: [
+        { label: 'Preferences…', accelerator: 'CmdOrCtrl+,', click: () => openPreferences() },
+        { type: 'separator' },
+        ...(isMac ? [{ role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' }, { type: 'separator' }] : []),
+        { role: 'quit' },
+      ],
+    },
+  ]));
+}
+
+ipcMain.handle('swyzzle:capture-screen', async () => {
+  try {
+    return await captureScreen();
   } catch (error) {
     return {
       error: {
@@ -102,19 +239,38 @@ ipcMain.handle('swyzzle:capture-screen', async () => {
         message: error.message || 'Screen capture failed.',
       },
     };
-  } finally {
-    if (window && !window.isDestroyed()) {
-      window.show();
-      window.focus();
-    }
   }
 });
 
+ipcMain.handle('swyzzle:get-state', () => ({ ...state }));
+ipcMain.handle('swyzzle:get-effects', () => EFFECTS.map(([value, label]) => ({ value, label })));
+
+ipcMain.on('swyzzle:set-effect', (_event, effect) => {
+  if (!EFFECTS.some(([value]) => value === effect)) return;
+  state.effect = effect;
+  sendOverlay({ type: 'setEffect', effect });
+});
+
+ipcMain.on('swyzzle:state', (_event, next) => {
+  Object.assign(state, next);
+  updateTrayMenu();
+  if (!state.captured && overlayWindow && !overlayWindow.isDestroyed() && overlayWindow.isVisible()) {
+    overlayWindow.hide();
+  }
+});
+
+ipcMain.on('swyzzle:quit', () => {
+  app.quit();
+});
+
 app.whenReady().then(() => {
-  createWindow();
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
+  applyAppIcon();
+  if (process.platform === 'darwin') app.dock.hide();
+  createOverlayWindow();
+  createTray();
+  createApplicationMenu();
+  globalThis.__SWYZZLE__ = { hasTray: true };
+  app.on('activate', () => openPreferences());
 });
 
 app.on('window-all-closed', () => {

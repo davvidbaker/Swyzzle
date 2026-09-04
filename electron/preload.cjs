@@ -10,4 +10,20 @@ contextBridge.exposeInMainWorld('swyzzleDesktop', {
     }
     return result;
   },
+  getState: () => ipcRenderer.invoke('swyzzle:get-state'),
+  getEffects: () => ipcRenderer.invoke('swyzzle:get-effects'),
+  setEffect: (effect) => {
+    ipcRenderer.send('swyzzle:set-effect', effect);
+  },
+  sendState: (state) => {
+    ipcRenderer.send('swyzzle:state', state);
+  },
+  onCommand: (listener) => {
+    const wrapped = (_event, command) => listener(command);
+    ipcRenderer.on('swyzzle:command', wrapped);
+    return () => ipcRenderer.removeListener('swyzzle:command', wrapped);
+  },
+  quit: () => {
+    ipcRenderer.send('swyzzle:quit');
+  },
 });

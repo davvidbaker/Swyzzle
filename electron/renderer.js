@@ -1,18 +1,20 @@
 import { SwyzzleRenderer } from '../src/core/SwyzzleRenderer.js';
 
 const canvas = document.querySelector('#glCanvas');
-const captureButton = document.querySelector('#captureBtn');
-const resetButton = document.querySelector('#resetBtn');
-const shaderSelect = document.querySelector('#shaderSelect');
-const status = document.querySelector('#status');
 
 let renderer;
+let captured = false;
+let paused = false;
+let effect = 'swyzzle';
+
 try {
-  renderer = new SwyzzleRenderer(canvas, { effect: shaderSelect.value });
+  renderer = new SwyzzleRenderer(canvas, { effect, autoStart: false });
 } catch (error) {
-  status.textContent = error.message;
-  status.dataset.kind = 'error';
-  captureButton.disabled = true;
+  console.error(error);
+}
+
+function publishState() {
+  window.swyzzleDesktop.sendState({ captured, paused, effect });
 }
 
 function loadImage(dataUrl) {
@@ -24,34 +26,84 @@ function loadImage(dataUrl) {
   });
 }
 
-captureButton.addEventListener('click', async () => {
+function setCaptured(next) {
+  captured = next;
+  canvas.classList.toggle('visible', next);
+  if (!next) paused = false;
+}
+
+async function captureFromDataUrl(dataUrl, nextEffect) {
   if (!renderer) return;
-  captureButton.disabled = true;
-  status.textContent = 'Capturing…';
-  status.dataset.kind = '';
-  try {
-    const capture = await window.swyzzleDesktop.captureScreen();
-    renderer.capture(await loadImage(capture.dataUrl));
-    canvas.classList.add('visible');
-    status.textContent = 'Move the pointer to melt the screen. Press Escape to quit.';
-  } catch (error) {
-    status.textContent = error.message;
-    status.dataset.kind = 'error';
-  } finally {
-    captureButton.disabled = false;
+  if (nextEffect && nextEffect !== effect) {
+    effect = nextEffect;
+    renderer.setEffect(effect);
+  }
+  renderer.capture(await loadImage(dataUrl));
+  setCaptured(true);
+  paused = false;
+  renderer.start();
+  publishState();
+}
+
+function pause() {
+  if (!renderer || !captured || paused) return;
+  renderer.stop();
+  paused = true;
+  publishState();
+}
+
+function resume() {
+  if (!renderer || !captured || !paused) return;
+  renderer.start();
+  paused = false;
+  publishState();
+}
+
+function clearOverlay() {
+  if (!renderer || !captured) return;
+  renderer.stop();
+  setCaptured(false);
+  publishState();
+}
+
+function setEffect(nextEffect) {
+  if (!renderer || !nextEffect || nextEffect === effect) return;
+  effect = nextEffect;
+  renderer.setEffect(effect);
+  publishState();
+}
+
+window.swyzzleDesktop.onCommand(async (command) => {
+  switch (command?.type) {
+    case 'capture':
+      await captureFromDataUrl(command.dataUrl, command.effect);
+      break;
+    case 'pause':
+      pause();
+      break;
+    case 'resume':
+      resume();
+      break;
+    case 'reset':
+      renderer?.reset();
+      break;
+    case 'clear':
+      clearOverlay();
+      break;
+    case 'setEffect':
+      setEffect(command.effect);
+      break;
+    default:
+      break;
   }
 });
 
-resetButton.addEventListener('click', () => renderer?.reset());
-shaderSelect.addEventListener('change', (event) => renderer?.setEffect(event.target.value));
-
-let cursorTimer;
-function showCursor() {
-  document.body.classList.remove('cursor-hidden');
-  clearTimeout(cursorTimer);
-  cursorTimer = setTimeout(() => document.body.classList.add('cursor-hidden'), 2000);
-}
-document.addEventListener('pointermove', showCursor, { passive: true });
-showCursor();
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && captured) {
+    event.preventDefault();
+    clearOverlay();
+  }
+});
 
 window.addEventListener('beforeunload', () => renderer?.destroy(), { once: true });
+publishState();
